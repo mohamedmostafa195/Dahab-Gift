@@ -9,7 +9,7 @@
       "passwordHash": "admin123",
       "createdAt": "2026-01-01T10:00:00.000Z"
     },
-    {
+    { 
       "id": "user-1",
       "phoneNumber": "01012345678",
       "fullName": "Mohamed Mostafa",

@@ -72,7 +72,7 @@ export default function AdminHeader({
   };
 
   return (
-    <header className="bg-[#0f0f13]/90 backdrop-blur-md border-b border-amber-500/20 px-4 sm:px-8 py-4 sticky top-0 z-30">
+    <header className="bg-[#0f0f13]/90 backdrop-blur-md border-b border-amber-500/20 px-4 sm:px-8 py-3.5 sm:py-4 md:sticky md:top-0 z-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Title & User Status */}
         <div>
