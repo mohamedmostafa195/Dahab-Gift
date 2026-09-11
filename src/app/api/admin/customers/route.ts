@@ -1,0 +1,90 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/storage';
+import { registerCustomer } from '@/lib/auth';
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get('search')?.toLowerCase() || '';
+    const filter = searchParams.get('filter') || 'all'; // all, reward-ready, active, new
+
+    const rule = db.getLoyaltyRule();
+    let customers = db.getCustomers();
+    const rewards = db.getRewards();
+
+    if (search) {
+      customers = customers.filter(
+        (c) =>
+          c.fullName.toLowerCase().includes(search) ||
+          c.phoneNumber.includes(search) ||
+          c.memberCode.toLowerCase().includes(search)
+      );
+    }
+
+    if (filter === 'reward-ready') {
+      customers = customers.filter((c) => {
+        const hasUnredeemedReward = rewards.some(
+          (r) => r.customerId === c.id && r.status === 'AVAILABLE'
+        );
+        return c.currentVisits >= rule.targetVisits || hasUnredeemedReward;
+      });
+    } else if (filter === 'active') {
+      customers = customers.filter((c) => c.currentVisits > 0);
+    }
+
+    const customersWithDetails = customers.map((c) => {
+      const custRewards = rewards.filter((r) => r.customerId === c.id);
+      const availableRewards = custRewards.filter((r) => r.status === 'AVAILABLE');
+      return {
+        ...c,
+        availableRewardsCount: availableRewards.length,
+        totalRewardsEarned: custRewards.length,
+        targetVisits: rule.targetVisits,
+        isReadyForReward: c.currentVisits >= rule.targetVisits || availableRewards.length > 0,
+      };
+    });
+
+    return NextResponse.json({
+      customers: customersWithDetails,
+      total: customersWithDetails.length,
+      rule,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch customers' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { fullName, phoneNumber, email, notes } = body;
+
+    if (!fullName || !phoneNumber) {
+      return NextResponse.json(
+        { error: 'Full Name and Phone Number are required' },
+        { status: 400 }
+      );
+    }
+
+    const res = registerCustomer({
+      fullName,
+      phoneNumber,
+      email,
+    });
+
+    if (notes) {
+      db.updateCustomer(res.customer.id, { notes });
+      res.customer.notes = notes;
+    }
+
+    return NextResponse.json(res, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to create customer' },
+      { status: 400 }
+    );
+  }
+}

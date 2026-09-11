@@ -1,0 +1,567 @@
+{
+  "users": [
+    {
+      "id": "user-admin",
+      "phoneNumber": "01000000000",
+      "fullName": "Dahab Admin Master",
+      "email": "admin@dahabbarbershop.com",
+      "role": "ADMIN",
+      "passwordHash": "admin123",
+      "createdAt": "2026-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "user-1",
+      "phoneNumber": "01012345678",
+      "fullName": "Mohamed Mostafa",
+      "email": "mohamed.m@example.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-06-15T11:20:00.000Z"
+    },
+    {
+      "id": "user-2",
+      "phoneNumber": "01123456789",
+      "fullName": "Ahmed Hassan",
+      "email": "ahmed.hassan@example.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-05-10T14:30:00.000Z"
+    },
+    {
+      "id": "user-3",
+      "phoneNumber": "01234567890",
+      "fullName": "Youssef Tarek",
+      "email": "youssef.t@example.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-04-02T16:00:00.000Z"
+    },
+    {
+      "id": "user-4",
+      "phoneNumber": "01098765432",
+      "fullName": "Tamer Samir",
+      "email": "tamer.samir@example.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-07-20T18:15:00.000Z"
+    },
+    {
+      "id": "user-5",
+      "phoneNumber": "01555555555",
+      "fullName": "Khaled Ibrahim",
+      "email": "khaled.i@example.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-08-01T12:00:00.000Z"
+    },
+    {
+      "id": "user-6",
+      "phoneNumber": "01022334455",
+      "fullName": "Omar El-Shamy",
+      "email": "omar.shamy@example.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-02-14T09:45:00.000Z"
+    },
+    {
+      "id": "user-1788884969326-8",
+      "phoneNumber": "01000774213",
+      "fullName": "Mohamed Mostafa",
+      "email": "mohameddmostafaa19@gmail.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456789",
+      "createdAt": "2026-09-08T16:29:29.326Z"
+    },
+    {
+      "id": "user-1788885036416-837",
+      "phoneNumber": "01091310689",
+      "fullName": "Dahab",
+      "email": "Dahab@gmail.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456789",
+      "createdAt": "2026-09-08T16:30:36.416Z"
+    }
+  ],
+  "customers": [
+    {
+      "id": "cust-1",
+      "userId": "user-1",
+      "fullName": "Mohamed Mostafa",
+      "phoneNumber": "01012345678",
+      "email": "mohamed.m@example.com",
+      "memberCode": "DHB-1001",
+      "currentCycle": 2,
+      "currentVisits": 0,
+      "lifetimeVisits": 5,
+      "tier": "SILVER",
+      "notes": "Prefers classic low fade with matte pomade.",
+      "createdAt": "2026-06-15T11:20:00.000Z",
+      "updatedAt": "2026-09-08T16:54:33.263Z",
+      "lastVisitDate": "2026-09-08T16:52:40.007Z"
+    },
+    {
+      "id": "cust-2",
+      "userId": "user-2",
+      "fullName": "Ahmed Hassan",
+      "phoneNumber": "01123456789",
+      "email": "ahmed.hassan@example.com",
+      "memberCode": "DHB-1002",
+      "currentCycle": 2,
+      "currentVisits": 0,
+      "lifetimeVisits": 5,
+      "tier": "SILVER",
+      "notes": "Beard trim with hot steam. Sensitive skin.",
+      "createdAt": "2026-05-10T14:30:00.000Z",
+      "updatedAt": "2026-09-08T17:26:16.750Z",
+      "lastVisitDate": "2026-09-01T17:10:00.000Z"
+    },
+    {
+      "id": "cust-3",
+      "userId": "user-3",
+      "fullName": "Youssef Tarek",
+      "phoneNumber": "01234567890",
+      "email": "youssef.t@example.com",
+      "memberCode": "DHB-1003",
+      "currentCycle": 2,
+      "currentVisits": 2,
+      "lifetimeVisits": 7,
+      "tier": "GOLD",
+      "notes": "Likes scissor work on top, skin taper on sides.",
+      "createdAt": "2026-04-02T16:00:00.000Z",
+      "updatedAt": "2026-08-30T19:00:00.000Z",
+      "lastVisitDate": "2026-08-30T19:00:00.000Z"
+    },
+    {
+      "id": "cust-4",
+      "userId": "user-4",
+      "fullName": "Tamer Samir",
+      "phoneNumber": "01098765432",
+      "email": "tamer.samir@example.com",
+      "memberCode": "DHB-1004",
+      "currentCycle": 1,
+      "currentVisits": 1,
+      "lifetimeVisits": 1,
+      "tier": "BRONZE",
+      "notes": "New client, recommended by Karim.",
+      "createdAt": "2026-07-20T18:15:00.000Z",
+      "updatedAt": "2026-07-20T18:15:00.000Z",
+      "lastVisitDate": "2026-07-20T18:15:00.000Z"
+    },
+    {
+      "id": "cust-5",
+      "userId": "user-5",
+      "fullName": "Khaled Ibrahim",
+      "phoneNumber": "01555555555",
+      "email": "khaled.i@example.com",
+      "memberCode": "DHB-1005",
+      "currentCycle": 1,
+      "currentVisits": 3,
+      "lifetimeVisits": 3,
+      "tier": "SILVER",
+      "notes": "Always gets charcoal facial with haircut.",
+      "createdAt": "2026-08-01T12:00:00.000Z",
+      "updatedAt": "2026-08-25T14:00:00.000Z",
+      "lastVisitDate": "2026-08-25T14:00:00.000Z"
+    },
+    {
+      "id": "cust-6",
+      "userId": "user-6",
+      "fullName": "Omar El-Shamy",
+      "phoneNumber": "01022334455",
+      "email": "omar.shamy@example.com",
+      "memberCode": "DHB-1006",
+      "currentCycle": 4,
+      "currentVisits": 0,
+      "lifetimeVisits": 15,
+      "tier": "ROYAL VIP",
+      "notes": "VIP regular customer. Double espresso on arrival.",
+      "createdAt": "2026-02-14T09:45:00.000Z",
+      "updatedAt": "2026-09-08T17:15:35.022Z",
+      "lastVisitDate": "2026-09-05T18:40:00.000Z"
+    },
+    {
+      "id": "cust-1788884969327-242",
+      "userId": "user-1788884969326-8",
+      "fullName": "Mohamed Mostafa",
+      "phoneNumber": "01000774213",
+      "email": "mohameddmostafaa19@gmail.com",
+      "memberCode": "DHB-2034",
+      "currentCycle": 1,
+      "currentVisits": 0,
+      "lifetimeVisits": 0,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-08T16:29:29.326Z",
+      "updatedAt": "2026-09-08T16:29:29.326Z"
+    },
+    {
+      "id": "cust-1788885036417-706",
+      "userId": "user-1788885036416-837",
+      "fullName": "Dahab",
+      "phoneNumber": "01091310689",
+      "email": "Dahab@gmail.com",
+      "memberCode": "DHB-4950",
+      "currentCycle": 1,
+      "currentVisits": 0,
+      "lifetimeVisits": 0,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-08T16:30:36.416Z",
+      "updatedAt": "2026-09-08T16:30:36.416Z"
+    }
+  ],
+  "visits": [
+    {
+      "id": "vis-101",
+      "customerId": "cust-1",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 1,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "Initial consultation & mid taper.",
+      "createdAt": "2026-06-15T12:00:00.000Z"
+    },
+    {
+      "id": "vis-102",
+      "customerId": "cust-1",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 2,
+      "serviceName": "Haircut + Royal Beard Sculpt",
+      "barberName": "Karim Mostafa",
+      "price": 550,
+      "notes": "Beard sharp lining with straight razor.",
+      "createdAt": "2026-07-08T16:30:00.000Z"
+    },
+    {
+      "id": "vis-103",
+      "customerId": "cust-1",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 3,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "Clean skin fade and textured top.",
+      "createdAt": "2026-08-02T14:15:00.000Z"
+    },
+    {
+      "id": "vis-104",
+      "customerId": "cust-1",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 4,
+      "serviceName": "Haircut + Royal Beard Sculpt",
+      "barberName": "Ziad Mansour",
+      "price": 550,
+      "notes": "Pre-event grooming & hot towel treatment.",
+      "createdAt": "2026-08-28T15:30:00.000Z"
+    },
+    {
+      "id": "vis-201",
+      "customerId": "cust-2",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 1,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Karim Mostafa",
+      "price": 350,
+      "createdAt": "2026-05-10T15:00:00.000Z"
+    },
+    {
+      "id": "vis-202",
+      "customerId": "cust-2",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 2,
+      "serviceName": "Haircut + Royal Beard Sculpt",
+      "barberName": "Karim Mostafa",
+      "price": 550,
+      "createdAt": "2026-06-05T18:00:00.000Z"
+    },
+    {
+      "id": "vis-203",
+      "customerId": "cust-2",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 3,
+      "serviceName": "Dahab VIP Ritual Experience",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 850,
+      "createdAt": "2026-07-01T17:30:00.000Z"
+    },
+    {
+      "id": "vis-204",
+      "customerId": "cust-2",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 4,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Karim Mostafa",
+      "price": 350,
+      "createdAt": "2026-08-04T16:00:00.000Z"
+    },
+    {
+      "id": "vis-205",
+      "customerId": "cust-2",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 5,
+      "serviceName": "Haircut + Royal Beard Sculpt",
+      "barberName": "Karim Mostafa",
+      "price": 550,
+      "notes": "5th visit reached! Free haircut voucher issued.",
+      "createdAt": "2026-09-01T17:10:00.000Z"
+    },
+    {
+      "id": "vis-301",
+      "customerId": "cust-3",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 1,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Ziad Mansour",
+      "price": 350,
+      "createdAt": "2026-04-02T16:30:00.000Z"
+    },
+    {
+      "id": "vis-302",
+      "customerId": "cust-3",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 2,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Ziad Mansour",
+      "price": 350,
+      "createdAt": "2026-04-29T14:00:00.000Z"
+    },
+    {
+      "id": "vis-303",
+      "customerId": "cust-3",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 3,
+      "serviceName": "Haircut + Royal Beard Sculpt",
+      "barberName": "Ziad Mansour",
+      "price": 550,
+      "createdAt": "2026-05-25T15:30:00.000Z"
+    },
+    {
+      "id": "vis-304",
+      "customerId": "cust-3",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 4,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "createdAt": "2026-06-20T19:00:00.000Z"
+    },
+    {
+      "id": "vis-305",
+      "customerId": "cust-3",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 5,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Ziad Mansour",
+      "price": 350,
+      "createdAt": "2026-07-15T18:00:00.000Z"
+    },
+    {
+      "id": "vis-306",
+      "customerId": "cust-3",
+      "cycleNumber": 2,
+      "visitIndexInCycle": 1,
+      "serviceName": "Free Signature Haircut (Reward Redemption)",
+      "barberName": "Ziad Mansour",
+      "price": 0,
+      "notes": "Redeemed Cycle 1 Loyalty Reward voucher.",
+      "createdAt": "2026-08-05T17:00:00.000Z"
+    },
+    {
+      "id": "vis-307",
+      "customerId": "cust-3",
+      "cycleNumber": 2,
+      "visitIndexInCycle": 2,
+      "serviceName": "Haircut + Royal Beard Sculpt",
+      "barberName": "Ziad Mansour",
+      "price": 550,
+      "createdAt": "2026-08-30T19:00:00.000Z"
+    },
+    {
+      "id": "vis-1788886360007-654",
+      "customerId": "cust-1",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 5,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-08T16:52:40.007Z"
+    }
+  ],
+  "rewards": [
+    {
+      "id": "rwd-201",
+      "customerId": "cust-2",
+      "customerName": "Ahmed Hassan",
+      "customerPhone": "01123456789",
+      "voucherCode": "DHB-RWD-7782",
+      "title": "Free Signature Haircut",
+      "description": "Complimentary signature haircut earned from completing 5 visits in Cycle 1.",
+      "cycleNumber": 1,
+      "status": "REDEEMED",
+      "earnedAt": "2026-09-01T17:10:00.000Z",
+      "redeemedAt": "2026-09-08T17:26:16.749Z",
+      "redeemedBy": "Master Barber"
+    },
+    {
+      "id": "rwd-301",
+      "customerId": "cust-3",
+      "customerName": "Youssef Tarek",
+      "customerPhone": "01234567890",
+      "voucherCode": "DHB-RWD-3419",
+      "title": "Free Signature Haircut",
+      "description": "Cycle 1 completed reward.",
+      "cycleNumber": 1,
+      "status": "REDEEMED",
+      "earnedAt": "2026-07-15T18:00:00.000Z",
+      "redeemedAt": "2026-08-05T17:00:00.000Z",
+      "redeemedBy": "Tarek \"The Master\" El-Sayed"
+    },
+    {
+      "id": "rwd-601",
+      "customerId": "cust-6",
+      "customerName": "Omar El-Shamy",
+      "customerPhone": "01022334455",
+      "voucherCode": "DHB-RWD-1102",
+      "title": "Free Signature Haircut",
+      "description": "Cycle 1 loyalty reward.",
+      "cycleNumber": 1,
+      "status": "REDEEMED",
+      "earnedAt": "2026-04-10T12:00:00.000Z",
+      "redeemedAt": "2026-05-01T15:00:00.000Z",
+      "redeemedBy": "Admin"
+    },
+    {
+      "id": "rwd-602",
+      "customerId": "cust-6",
+      "customerName": "Omar El-Shamy",
+      "customerPhone": "01022334455",
+      "voucherCode": "DHB-RWD-1103",
+      "title": "Free Beard Sculpt & Hot Towel",
+      "description": "Cycle 2 loyalty reward.",
+      "cycleNumber": 2,
+      "status": "REDEEMED",
+      "earnedAt": "2026-07-02T14:30:00.000Z",
+      "redeemedAt": "2026-07-20T16:00:00.000Z",
+      "redeemedBy": "Karim Mostafa"
+    },
+    {
+      "id": "rwd-603",
+      "customerId": "cust-6",
+      "customerName": "Omar El-Shamy",
+      "customerPhone": "01022334455",
+      "voucherCode": "DHB-RWD-9941",
+      "title": "Free Signature Haircut",
+      "description": "Cycle 3 completed loyalty reward! Ready to redeem.",
+      "cycleNumber": 3,
+      "status": "REDEEMED",
+      "earnedAt": "2026-09-05T18:40:00.000Z",
+      "redeemedAt": "2026-09-08T17:15:35.021Z",
+      "redeemedBy": "Master Barber Tarek"
+    },
+    {
+      "id": "rwd-1788886360011-680",
+      "customerId": "cust-1",
+      "customerName": "Mohamed Mostafa",
+      "customerPhone": "01012345678",
+      "voucherCode": "DHB-RWD-8746",
+      "title": "Free Signature Haircut",
+      "description": "Cycle 1 Reward: Enjoy a complimentary signature haircut with refreshing hot towel finish.",
+      "cycleNumber": 1,
+      "status": "REDEEMED",
+      "earnedAt": "2026-09-08T16:52:40.007Z",
+      "redeemedAt": "2026-09-08T16:54:33.258Z",
+      "redeemedBy": "Master Barber"
+    }
+  ],
+  "loyaltyRule": {
+    "id": "rule-default-1",
+    "targetVisits": 5,
+    "rewardTitle": "Free Signature Haircut",
+    "rewardDesc": "Enjoy a complimentary signature haircut with refreshing hot towel finish.",
+    "shopName": "DAHAB",
+    "phonePrefix": "+20",
+    "isActive": true,
+    "updatedAt": "2026-09-08T17:16:02.750Z"
+  },
+  "barbers": [
+    {
+      "id": "barber-1",
+      "name": "Tarek \"The Master\" El-Sayed",
+      "role": "Head Stylist & Founder",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
+      "specialty": "Classic Tapers, Scissor Fades & Royal Shaves",
+      "rating": 4.9
+    },
+    {
+      "id": "barber-2",
+      "name": "Karim Mostafa",
+      "role": "Senior Barber",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
+      "specialty": "Beard Sculpting, Razor Lineups & Skin Fades",
+      "rating": 4.8
+    },
+    {
+      "id": "barber-3",
+      "name": "Ziad Mansour",
+      "role": "Precision Stylist",
+      "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80",
+      "specialty": "Modern Textured Crops & Hair Spa Treatments",
+      "rating": 4.9
+    },
+    {
+      "id": "barber-4",
+      "name": "Omar Reda",
+      "role": "Master Groomer",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=80",
+      "specialty": "Hot Towel Rituals & Charcoal Detox",
+      "rating": 4.7
+    }
+  ],
+  "services": [
+    {
+      "id": "srv-1",
+      "name": "Dahab Signature Haircut",
+      "category": "HAIRCUT",
+      "duration": "40 min",
+      "price": 350,
+      "description": "Precision cut, neck shave, invigorating wash, and styling with premium pomade.",
+      "popular": true
+    },
+    {
+      "id": "srv-2",
+      "name": "Haircut + Royal Beard Sculpt",
+      "category": "PACKAGE",
+      "duration": "60 min",
+      "price": 550,
+      "description": "Signature haircut combined with hot towel steam beard trim and razor outline.",
+      "popular": true
+    },
+    {
+      "id": "srv-3",
+      "name": "Royal Beard Sculpt & Hot Towel",
+      "category": "BEARD",
+      "duration": "30 min",
+      "price": 250,
+      "description": "Hot lather steam, straight razor edge lining, organic beard oil treatment.",
+      "popular": false
+    },
+    {
+      "id": "srv-4",
+      "name": "Dahab VIP Ritual Experience",
+      "category": "PACKAGE",
+      "duration": "80 min",
+      "price": 850,
+      "description": "Haircut, beard sculpt, deep purifying charcoal facial, eye mask, and espresso.",
+      "popular": true
+    },
+    {
+      "id": "srv-5",
+      "name": "Charcoal Face Detox & Scrub",
+      "category": "TREATMENT",
+      "duration": "25 min",
+      "price": 220,
+      "description": "Exfoliating black mask, steam extraction, and refreshing botanical toner.",
+      "popular": false
+    }
+  ]
+}
