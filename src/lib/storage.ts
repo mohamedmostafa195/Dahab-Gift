@@ -37,10 +37,6 @@ const DB_FILE = path.join(DB_DIR, 'barbershop-db.json');
 let memoryDb: DatabaseSchema | null = null;
 
 function ensureDbFile(): DatabaseSchema {
-  if (memoryDb) {
-    return memoryDb;
-  }
-
   try {
     if (!fs.existsSync(DB_DIR)) {
       fs.mkdirSync(DB_DIR, { recursive: true });
@@ -52,15 +48,15 @@ function ensureDbFile(): DatabaseSchema {
       return memoryDb;
     }
   } catch (err) {
-    console.error('Error reading DB file, using seed data:', err);
+    console.error('Error reading DB file:', err);
   }
 
-  // Initialize with seed data
+  // Initialize with clean data
   const initialData: DatabaseSchema = {
     users: [...INITIAL_USERS],
-    customers: [...INITIAL_CUSTOMERS],
-    visits: [...INITIAL_VISITS],
-    rewards: [...INITIAL_REWARDS],
+    customers: [],
+    visits: [],
+    rewards: [],
     loyaltyRule: { ...INITIAL_LOYALTY_RULE },
     barbers: [...INITIAL_BARBERS],
     services: [...INITIAL_SERVICES],
@@ -88,15 +84,25 @@ export const db = {
   resetToDefaults(): DatabaseSchema {
     const defaultData: DatabaseSchema = {
       users: JSON.parse(JSON.stringify(INITIAL_USERS)),
-      customers: JSON.parse(JSON.stringify(INITIAL_CUSTOMERS)),
-      visits: JSON.parse(JSON.stringify(INITIAL_VISITS)),
-      rewards: JSON.parse(JSON.stringify(INITIAL_REWARDS)),
+      customers: [],
+      visits: [],
+      rewards: [],
       loyaltyRule: JSON.parse(JSON.stringify(INITIAL_LOYALTY_RULE)),
       barbers: JSON.parse(JSON.stringify(INITIAL_BARBERS)),
       services: JSON.parse(JSON.stringify(INITIAL_SERVICES)),
     };
     saveDb(defaultData);
     return defaultData;
+  },
+
+  clearAllCustomers(): DatabaseSchema {
+    const data = ensureDbFile();
+    data.users = data.users.filter((u) => u.role === 'ADMIN');
+    data.customers = [];
+    data.visits = [];
+    data.rewards = [];
+    saveDb(data);
+    return data;
   },
 
   // USERS
