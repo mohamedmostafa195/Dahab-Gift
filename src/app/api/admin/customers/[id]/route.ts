@@ -7,18 +7,39 @@ export async function GET(
 ) {
   try {
     const resolvedParams = await Promise.resolve(context.params);
-    const { id } = resolvedParams;
+    let rawId = decodeURIComponent(resolvedParams.id || '').trim();
 
-    let customer = db.getCustomerById(id);
-    if (!customer) {
-      customer = db.getCustomerByPhone(id);
-    }
-    if (!customer) {
-      customer = db.getCustomerByMemberCode(id);
+    // If id is JSON string (e.g. from QR code directly)
+    let parsedIdentifier = rawId;
+    try {
+      if (rawId.startsWith('{') && rawId.endsWith('}')) {
+        const parsed = JSON.parse(rawId);
+        parsedIdentifier = parsed.memberCode || parsed.phone || parsed.id || parsedIdentifier;
+      }
+    } catch (e) {
+      // not JSON, continue
     }
 
+    const cleanInput = parsedIdentifier.trim();
+    const cleanPhone = cleanInput.replace(/[\s\-\+]/g, '');
+
+    const customers = db.getCustomers();
+    let customer = customers.find((c) => {
+      const cPhoneClean = c.phoneNumber.replace(/[\s\-\+]/g, '');
+      return (
+        c.id === cleanInput ||
+        c.memberCode.toUpperCase() === cleanInput.toUpperCase() ||
+        c.phoneNumber === cleanInput ||
+        cPhoneClean === cleanPhone ||
+        (cPhoneClean.endsWith(cleanPhone) && cleanPhone.length >= 8) ||
+        (cleanPhone.endsWith(cPhoneClean) && cPhoneClean.length >= 8) ||
+        (c.email && c.email.toLowerCase() === cleanInput.toLowerCase()) ||
+        c.userId === cleanInput
+      );
+    });
+
     if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Customer not found with this QR pass or Phone Number' }, { status: 404 });
     }
 
     const rule = db.getLoyaltyRule();
