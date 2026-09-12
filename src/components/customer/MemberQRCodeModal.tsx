@@ -31,12 +31,8 @@ export default function MemberQRCodeModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // QR Payload contains JSON string with MemberCode, Phone, and Name for scanner
-  const qrPayload = JSON.stringify({
-    memberCode,
-    phone: phoneNumber,
-    name: customerName,
-  });
+  // Clean MemberCode payload for highest scanning compatibility and large clear QR blocks
+  const qrPayload = memberCode || phoneNumber;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in-0 duration-200">
@@ -62,14 +58,15 @@ export default function MemberQRCodeModal({
         </h3>
         <p className="text-xs text-zinc-400 font-mono mb-5">{phoneNumber}</p>
 
-        {/* QR Code Container */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl inline-block shadow-lg mx-auto mb-5 border-4 border-amber-400/30">
+        {/* QR Code Container with High Contrast & Quiet Zone */}
+        <div className="bg-white p-3 sm:p-4 rounded-2xl inline-block shadow-2xl mx-auto mb-5 border-4 border-amber-400/40">
           <QRCodeSVG
             value={qrPayload}
-            size={190}
-            level="H"
-            includeMargin={false}
-            fgColor="#09090b"
+            size={200}
+            level="M"
+            includeMargin={true}
+            fgColor="#000000"
+            bgColor="#ffffff"
           />
         </div>
 
