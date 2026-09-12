@@ -17,6 +17,15 @@
       "role": "CUSTOMER",
       "passwordHash": "123456",
       "createdAt": "2026-09-12T15:46:37.623Z"
+    },
+    {
+      "id": "user-1789229228441-506",
+      "phoneNumber": "01000774213",
+      "fullName": "Test",
+      "email": "Testing@gmail.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-09-12T16:07:08.441Z"
     }
   ],
   "customers": [
@@ -33,6 +42,20 @@
       "tier": "BRONZE",
       "createdAt": "2026-09-12T15:46:37.623Z",
       "updatedAt": "2026-09-12T15:46:37.623Z"
+    },
+    {
+      "id": "cust-1789229228442-254",
+      "userId": "user-1789229228441-506",
+      "fullName": "Test",
+      "phoneNumber": "01000774213",
+      "email": "Testing@gmail.com",
+      "memberCode": "DHB-9630",
+      "currentCycle": 1,
+      "currentVisits": 0,
+      "lifetimeVisits": 0,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-12T16:07:08.441Z",
+      "updatedAt": "2026-09-12T16:07:08.441Z"
     }
   ],
   "visits": [],
