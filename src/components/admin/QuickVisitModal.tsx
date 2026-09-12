@@ -58,6 +58,13 @@ export default function QuickVisitModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerId: customer.id,
+          customerPhone: customer.phoneNumber,
+          customerName: customer.fullName,
+          memberCode: customer.memberCode,
+          currentVisits: customer.currentVisits,
+          lifetimeVisits: customer.lifetimeVisits,
+          currentCycle: customer.currentCycle,
+          tier: customer.tier,
           serviceName: selectedService,
           barberName: selectedBarber,
           price,

@@ -165,28 +165,60 @@ export const db = {
     return ensureDbFile().customers;
   },
   getCustomerById(id: string): Customer | undefined {
-    const clean = id.trim().replace(/[\s\-\+]/g, '');
-    return ensureDbFile().customers.find(
-      (c) =>
-        c.id === id ||
-        c.memberCode.toUpperCase() === id.trim().toUpperCase() ||
-        c.phoneNumber === id ||
-        c.phoneNumber.replace(/[\s\-\+]/g, '') === clean ||
-        c.userId === id
-    );
+    if (!id) return undefined;
+    const raw = id.trim();
+    const clean = raw.replace(/[\s\-\+]/g, '');
+    const upper = raw.toUpperCase();
+    const data = ensureDbFile();
+
+    return data.customers.find((c) => {
+      const cPhoneClean = c.phoneNumber.replace(/[\s\-\+]/g, '');
+      return (
+        c.id === raw ||
+        c.id === clean ||
+        c.memberCode.toUpperCase() === upper ||
+        c.memberCode.replace(/[\s\-]/g, '').toUpperCase() === upper.replace(/[\s\-]/g, '') ||
+        c.phoneNumber === raw ||
+        cPhoneClean === clean ||
+        (clean.length >= 9 && cPhoneClean.endsWith(clean)) ||
+        (cPhoneClean.length >= 9 && clean.endsWith(cPhoneClean)) ||
+        c.userId === raw
+      );
+    });
   },
   getCustomerByUserId(userId: string): Customer | undefined {
-    return ensureDbFile().customers.find((c) => c.userId === userId);
+    if (!userId) return undefined;
+    return ensureDbFile().customers.find((c) => c.userId === userId || c.id === userId);
   },
   getCustomerByPhone(phone: string): Customer | undefined {
+    if (!phone) return undefined;
     const clean = phone.trim().replace(/[\s\-\+]/g, '');
-    return ensureDbFile().customers.find(
-      (c) => c.phoneNumber.replace(/[\s\-\+]/g, '') === clean
-    );
+    const cleanNoCountry = clean.replace(/^(?:20|0020|\+20)/, '');
+    const norm = cleanNoCountry.startsWith('0') ? cleanNoCountry : '0' + cleanNoCountry;
+    const data = ensureDbFile();
+
+    return data.customers.find((c) => {
+      const cClean = c.phoneNumber.replace(/[\s\-\+]/g, '');
+      const cNoCountry = cClean.replace(/^(?:20|0020|\+20)/, '');
+      const cNorm = cNoCountry.startsWith('0') ? cNoCountry : '0' + cNoCountry;
+      return (
+        cClean === clean ||
+        cNorm === norm ||
+        (norm.length >= 9 && cNorm.endsWith(norm)) ||
+        (cNorm.length >= 9 && norm.endsWith(cNorm))
+      );
+    });
   },
   getCustomerByMemberCode(code: string): Customer | undefined {
+    if (!code) return undefined;
     const clean = code.trim().toUpperCase();
-    return ensureDbFile().customers.find((c) => c.memberCode.toUpperCase() === clean);
+    const cleanNoDash = clean.replace(/[\s\-]/g, '');
+    const data = ensureDbFile();
+
+    return data.customers.find((c) => {
+      const mCode = c.memberCode.toUpperCase();
+      return mCode === clean || mCode.replace(/[\s\-]/g, '') === cleanNoDash;
+    });
   },
   createCustomer(customer: Customer): Customer {
     const data = ensureDbFile();

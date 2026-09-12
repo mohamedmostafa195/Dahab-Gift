@@ -35,20 +35,40 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { customerId, serviceName, barberName, price, notes } = body;
+    const {
+      customerId,
+      customerPhone,
+      customerName,
+      memberCode,
+      currentVisits,
+      lifetimeVisits,
+      currentCycle,
+      tier,
+      serviceName,
+      barberName,
+      price,
+      notes,
+    } = body;
 
-    if (!customerId) {
+    if (!customerId && !customerPhone && !memberCode) {
       return NextResponse.json(
-        { error: 'Customer ID is required' },
+        { error: 'Customer identifier is required' },
         { status: 400 }
       );
     }
 
     const result = logCustomerVisit({
-      customerId,
+      customerId: customerId || customerPhone || memberCode,
+      customerPhone,
+      customerName,
+      memberCode,
+      currentVisits: currentVisits !== undefined ? Number(currentVisits) : undefined,
+      lifetimeVisits: lifetimeVisits !== undefined ? Number(lifetimeVisits) : undefined,
+      currentCycle: currentCycle !== undefined ? Number(currentCycle) : undefined,
+      tier,
       serviceName,
       barberName,
-      price: price ? Number(price) : undefined,
+      price: price !== undefined ? Number(price) : undefined,
       notes,
     });
 

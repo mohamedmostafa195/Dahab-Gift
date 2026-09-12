@@ -22,16 +22,56 @@ export interface AddVisitResult {
   message: string;
 }
 
-export function logCustomerVisit(params: {
+export interface LogVisitParams {
   customerId: string;
+  customerPhone?: string;
+  memberCode?: string;
+  customerName?: string;
+  currentVisits?: number;
+  lifetimeVisits?: number;
+  currentCycle?: number;
+  tier?: Customer['tier'];
   serviceName?: string;
   barberName?: string;
   price?: number;
   notes?: string;
-}): AddVisitResult {
-  const customer = db.getCustomerById(params.customerId);
+}
+
+export function logCustomerVisit(params: LogVisitParams): AddVisitResult {
+  let customer = db.getCustomerById(params.customerId);
+  if (!customer && params.customerPhone) {
+    customer = db.getCustomerByPhone(params.customerPhone);
+  }
+  if (!customer && params.memberCode) {
+    customer = db.getCustomerByMemberCode(params.memberCode);
+  }
+
+  // If customer is still not in this runtime memory (e.g. Vercel serverless cold start),
+  // auto-heal customer record so the haircut visit and reward are never lost
   if (!customer) {
-    throw new Error('Customer not found');
+    const rawId = params.customerId || '';
+    const phone =
+      params.customerPhone ||
+      (rawId.startsWith('01') || rawId.startsWith('+20') ? rawId : '01000000000');
+    const memberCode =
+      params.memberCode ||
+      (rawId.toUpperCase().startsWith('DHB') ? rawId.toUpperCase() : `DHB-${Math.floor(1000 + Math.random() * 9000)}`);
+    const fullName = params.customerName || `Customer ${phone.slice(-4)}`;
+    const now = new Date().toISOString();
+
+    customer = db.createCustomer({
+      id: rawId.startsWith('cust-') ? rawId : `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      userId: `user-${Date.now()}`,
+      fullName,
+      phoneNumber: phone,
+      memberCode,
+      currentCycle: params.currentCycle || 1,
+      currentVisits: params.currentVisits !== undefined ? params.currentVisits : 0,
+      lifetimeVisits: params.lifetimeVisits !== undefined ? params.lifetimeVisits : 0,
+      tier: params.tier || calculateTier(params.lifetimeVisits || 0),
+      createdAt: now,
+      updatedAt: now,
+    });
   }
 
   const rule = db.getLoyaltyRule();

@@ -24,34 +24,29 @@ export async function GET(
     const cleanInput = parsedIdentifier.trim();
     const cleanPhone = cleanInput.replace(/[\s\-\+]/g, '');
 
-    const customers = db.getCustomers();
-    let customer = customers.find((c) => {
-      const cPhoneClean = c.phoneNumber.replace(/[\s\-\+]/g, '');
-      return (
-        c.id === cleanInput ||
-        c.memberCode.toUpperCase() === cleanInput.toUpperCase() ||
-        c.phoneNumber === cleanInput ||
-        cPhoneClean === cleanPhone ||
-        (cPhoneClean.endsWith(cleanPhone) && cleanPhone.length >= 8) ||
-        (cleanPhone.endsWith(cPhoneClean) && cPhoneClean.length >= 8) ||
-        (c.email && c.email.toLowerCase() === cleanInput.toLowerCase()) ||
-        c.userId === cleanInput
-      );
-    });
+    // 1. First try direct DB lookup helpers
+    let customer =
+      db.getCustomerById(cleanInput) ||
+      db.getCustomerByPhone(cleanInput) ||
+      db.getCustomerByMemberCode(cleanInput);
 
-    // Auto-provision if scanning a member QR pass that exists on customer phone but not in current serverless instance
+    // 2. Auto-provision if scanning a valid member code / pass on customer phone not yet in this runtime instance
     if (!customer) {
+      const now = new Date().toISOString();
       if (jsonPayload && (jsonPayload.phone || jsonPayload.memberCode || jsonPayload.code)) {
         const phone = (jsonPayload.phone || cleanPhone || '').trim();
-        const memberCode = (jsonPayload.memberCode || jsonPayload.code || `DHB-${Math.floor(1000 + Math.random() * 9000)}`).trim();
-        const fullName = (jsonPayload.name || jsonPayload.fullName || `Member ${phone.slice(-4)}`).trim();
-        const now = new Date().toISOString();
+        const memberCode = (
+          jsonPayload.memberCode ||
+          jsonPayload.code ||
+          `DHB-${Math.floor(1000 + Math.random() * 9000)}`
+        ).trim().toUpperCase();
+        const fullName = (jsonPayload.name || jsonPayload.fullName || `Member ${phone.slice(-4) || memberCode}`).trim();
 
         customer = db.createCustomer({
           id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           userId: `user-${Date.now()}`,
           fullName,
-          phoneNumber: phone,
+          phoneNumber: phone || '01000000000',
           email: jsonPayload.email,
           memberCode,
           currentCycle: 1,
@@ -61,8 +56,22 @@ export async function GET(
           createdAt: now,
           updatedAt: now,
         });
+      } else if (/^DHB-[A-Z0-9]+$/i.test(cleanInput)) {
+        const memberCode = cleanInput.toUpperCase();
+        customer = db.createCustomer({
+          id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          userId: `user-${Date.now()}`,
+          fullName: `Member ${memberCode}`,
+          phoneNumber: '010' + Math.floor(10000000 + Math.random() * 90000000),
+          memberCode,
+          currentCycle: 1,
+          currentVisits: 0,
+          lifetimeVisits: 0,
+          tier: 'BRONZE',
+          createdAt: now,
+          updatedAt: now,
+        });
       } else if (cleanPhone && cleanPhone.length >= 10 && /^01[0-2,5]{1}[0-9]{8}$/.test(cleanPhone)) {
-        const now = new Date().toISOString();
         customer = db.createCustomer({
           id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           userId: `user-${Date.now()}`,

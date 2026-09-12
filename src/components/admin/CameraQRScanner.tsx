@@ -119,6 +119,7 @@ export default function CameraQRScanner({
       const formatsToSupport = [
         Html5QrcodeSupportedFormats.QR_CODE,
         Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.UPC_A,
       ];
@@ -138,30 +139,60 @@ export default function CameraQRScanner({
         cameras = await Html5Qrcode.getCameras();
         setAvailableCameras(cameras);
         if (cameras.length > 0 && !selectedCameraId && !cameraIdToUse) {
-          // Default to the last camera (typically the back camera on mobile)
-          setSelectedCameraId(cameras[cameras.length - 1].id);
+          // Select standard/main back camera (avoid telephoto or ultra-wide lenses by default)
+          const backCameras = cameras.filter((c) => {
+            const label = c.label.toLowerCase();
+            return (
+              label.includes('back') ||
+              label.includes('rear') ||
+              label.includes('environment')
+            );
+          });
+
+          // Prefer standard back/wide camera over telephoto or ultra-wide
+          const mainBackCam =
+            backCameras.find((c) => {
+              const label = c.label.toLowerCase();
+              return (
+                !label.includes('telephoto') &&
+                !label.includes('ultra') &&
+                !label.includes('0.5x') &&
+                !label.includes('3x') &&
+                !label.includes('5x')
+              );
+            }) ||
+            backCameras[0] ||
+            cameras[0];
+
+          setSelectedCameraId(mainBackCam.id);
         }
       } catch (camErr) {
         console.warn('Could not enumerate cameras:', camErr);
       }
 
-      // Full-frame scanning without bounding-box cropping allows instant detection anywhere in view
       const qrConfig = {
-        fps: 12,
+        fps: 20,
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const edgeSize = Math.floor(minEdge * 0.8);
+          return {
+            width: Math.min(edgeSize, 300),
+            height: Math.min(edgeSize, 300),
+          };
+        },
         aspectRatio: 1.0,
         disableFlip: false,
         videoConstraints: {
           facingMode: { ideal: 'environment' },
-          focusMode: 'continuous',
-          width: { min: 640, ideal: 1280, max: 1920 },
-          height: { min: 480, ideal: 720, max: 1080 },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
         },
       };
 
       const chosenCameraId =
         cameraIdToUse ||
         selectedCameraId ||
-        (cameras.length > 0 ? cameras[cameras.length - 1].id : undefined);
+        (cameras.length > 0 ? cameras[0].id : undefined);
 
       const cameraParam = chosenCameraId
         ? { deviceId: { exact: chosenCameraId } }
@@ -192,15 +223,15 @@ export default function CameraQRScanner({
     } catch (err: any) {
       console.warn('Camera start error:', err);
 
-      // Fallback try: any camera facing user
+      // Fallback try: default environment facing mode
       try {
         if (html5QrCodeRef.current && !html5QrCodeRef.current.isScanning) {
           const fallbackConfig = {
             fps: 15,
-            qrbox: { width: 220, height: 220 },
+            qrbox: { width: 240, height: 240 },
           };
           await html5QrCodeRef.current.start(
-            { facingMode: 'user' },
+            { facingMode: 'environment' },
             fallbackConfig,
             (decodedText) => handleDecodedText(decodedText),
             () => {}
@@ -213,7 +244,7 @@ export default function CameraQRScanner({
       }
 
       setCameraError(
-        'Camera access was not permitted or is in use by another app. You can upload a QR image or enter code manually below.'
+        'Camera access was not permitted or is in use by another app. You can switch cameras, upload a QR image, or enter code manually below.'
       );
       setScanning(false);
     } finally {
@@ -291,30 +322,61 @@ export default function CameraQRScanner({
     }
   };
 
+  const extractIdentifier = (text: string): string => {
+    let clean = (text || '').trim();
+    if (!clean) return clean;
+
+    // 1. JSON payload
+    if ((clean.startsWith('{') && clean.endsWith('}')) || (clean.startsWith('"{') && clean.endsWith('}"'))) {
+      try {
+        const parsed = JSON.parse(clean.startsWith('"{') ? JSON.parse(clean) : clean);
+        if (parsed.memberCode) return parsed.memberCode;
+        if (parsed.phone || parsed.phoneNumber) return parsed.phone || parsed.phoneNumber;
+        if (parsed.code) return parsed.code;
+        if (parsed.id) return parsed.id;
+      } catch (e) {}
+    }
+
+    // 2. URL containing query params or path segment
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      try {
+        const url = new URL(clean);
+        const codeParam =
+          url.searchParams.get('code') ||
+          url.searchParams.get('memberCode') ||
+          url.searchParams.get('phone') ||
+          url.searchParams.get('id');
+        if (codeParam) return codeParam;
+
+        const segments = url.pathname.split('/').filter(Boolean);
+        const last = segments[segments.length - 1];
+        if (last && (last.startsWith('DHB-') || /^01[0-9]{9}$/.test(last))) {
+          return last;
+        }
+      } catch (e) {}
+    }
+
+    // 3. Member Code pattern (e.g. DHB-1234)
+    const dhbMatch = clean.match(/DHB-[A-Z0-9]+/i);
+    if (dhbMatch) {
+      return dhbMatch[0].toUpperCase();
+    }
+
+    // 4. Egyptian phone number pattern (e.g. 01012345678 or +201012345678)
+    const phoneMatch = clean.match(/(?:\+20|0020|0)?(1[0125][0-9]{8})/);
+    if (phoneMatch) {
+      return '0' + phoneMatch[1];
+    }
+
+    return clean;
+  };
+
   const handleDecodedText = (text: string) => {
     playScanFeedback();
     setScannedResult(text);
     stopCamera();
 
-    let identifier = text.trim();
-    try {
-      if (text.startsWith('{') && text.endsWith('}')) {
-        const parsed = JSON.parse(text);
-        if (parsed.memberCode) {
-          identifier = parsed.memberCode;
-        } else if (parsed.phone) {
-          identifier = parsed.phone;
-        } else if (parsed.code) {
-          identifier = parsed.code;
-        } else if (parsed.id) {
-          identifier = parsed.id;
-        }
-      }
-    } catch {
-      // plain text string
-      identifier = text.trim();
-    }
-
+    const identifier = extractIdentifier(text);
     onCustomerFound(identifier);
   };
 
