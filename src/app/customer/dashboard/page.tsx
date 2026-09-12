@@ -43,7 +43,14 @@ export default function CustomerDashboardPage() {
     setLoading(true);
     try {
       const phone = localStorage.getItem('dahab_customer_phone') || '01012345678';
-      const res = await fetch(`/api/customer/me?phone=${encodeURIComponent(phone)}`);
+      const customerId = localStorage.getItem('dahab_customer_id');
+      const queryParam = phone
+        ? `phone=${encodeURIComponent(phone)}`
+        : customerId
+        ? `customerId=${encodeURIComponent(customerId)}`
+        : `phone=01012345678`;
+
+      const res = await fetch(`/api/customer/me?${queryParam}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -55,6 +62,12 @@ export default function CustomerDashboardPage() {
       setVisits(data.visits || []);
       setActiveRewards(data.activeRewards || []);
       setPastRewards(data.pastRewards || []);
+
+      if (data.customer) {
+        localStorage.setItem('dahab_customer_phone', data.customer.phoneNumber);
+        localStorage.setItem('dahab_customer_id', data.customer.id);
+        localStorage.setItem('dahab_customer_name', data.customer.fullName);
+      }
     } catch (err) {
       console.error('Error fetching customer profile:', err);
     } finally {

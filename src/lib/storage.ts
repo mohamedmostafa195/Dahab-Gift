@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import {
   User,
   Customer,
@@ -30,13 +31,20 @@ interface DatabaseSchema {
   services: ServiceItem[];
 }
 
-const DB_DIR = path.join(process.cwd(), 'data');
+// In serverless environments (like Vercel), the root project filesystem is read-only.
+// We use os.tmpdir() so that file caching works if possible, combined with in-memory caching.
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production');
+const DB_DIR = isServerless ? os.tmpdir() : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'barbershop-db.json');
 
 // In-memory cache for ultra-fast access
 let memoryDb: DatabaseSchema | null = null;
 
 function ensureDbFile(): DatabaseSchema {
+  if (memoryDb) {
+    return memoryDb;
+  }
+
   try {
     if (!fs.existsSync(DB_DIR)) {
       fs.mkdirSync(DB_DIR, { recursive: true });
@@ -44,22 +52,25 @@ function ensureDbFile(): DatabaseSchema {
 
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
-      memoryDb = JSON.parse(raw) as DatabaseSchema;
-      return memoryDb;
+      const parsed = JSON.parse(raw) as DatabaseSchema;
+      if (parsed && Array.isArray(parsed.customers)) {
+        memoryDb = parsed;
+        return memoryDb;
+      }
     }
   } catch (err) {
     console.error('Error reading DB file:', err);
   }
 
-  // Initialize with clean data
+  // Initialize with seed data
   const initialData: DatabaseSchema = {
-    users: [...INITIAL_USERS],
-    customers: [],
-    visits: [],
-    rewards: [],
-    loyaltyRule: { ...INITIAL_LOYALTY_RULE },
-    barbers: [...INITIAL_BARBERS],
-    services: [...INITIAL_SERVICES],
+    users: JSON.parse(JSON.stringify(INITIAL_USERS)),
+    customers: JSON.parse(JSON.stringify(INITIAL_CUSTOMERS)),
+    visits: JSON.parse(JSON.stringify(INITIAL_VISITS)),
+    rewards: JSON.parse(JSON.stringify(INITIAL_REWARDS)),
+    loyaltyRule: JSON.parse(JSON.stringify(INITIAL_LOYALTY_RULE)),
+    barbers: JSON.parse(JSON.stringify(INITIAL_BARBERS)),
+    services: JSON.parse(JSON.stringify(INITIAL_SERVICES)),
   };
 
   saveDb(initialData);
@@ -84,9 +95,9 @@ export const db = {
   resetToDefaults(): DatabaseSchema {
     const defaultData: DatabaseSchema = {
       users: JSON.parse(JSON.stringify(INITIAL_USERS)),
-      customers: [],
-      visits: [],
-      rewards: [],
+      customers: JSON.parse(JSON.stringify(INITIAL_CUSTOMERS)),
+      visits: JSON.parse(JSON.stringify(INITIAL_VISITS)),
+      rewards: JSON.parse(JSON.stringify(INITIAL_REWARDS)),
       loyaltyRule: JSON.parse(JSON.stringify(INITIAL_LOYALTY_RULE)),
       barbers: JSON.parse(JSON.stringify(INITIAL_BARBERS)),
       services: JSON.parse(JSON.stringify(INITIAL_SERVICES)),

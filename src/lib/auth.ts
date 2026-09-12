@@ -23,8 +23,59 @@ export function registerCustomer(params: {
   }
 
   const existingUser = db.getUserByPhone(cleanPhone);
-  if (existingUser) {
-    throw new Error('A member with this phone number already exists. Please log in.');
+  let existingCustomer = db.getCustomerByPhone(cleanPhone);
+
+  if (existingUser || existingCustomer) {
+    // If account exists, update details and sign in smoothly
+    const now = new Date().toISOString();
+    let finalUser = existingUser;
+    if (finalUser) {
+      finalUser.fullName = params.fullName?.trim() || finalUser.fullName;
+      if (params.email) finalUser.email = params.email.trim();
+      if (params.password) finalUser.passwordHash = params.password;
+    } else {
+      finalUser = db.createUser({
+        id: `user-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        phoneNumber: cleanPhone,
+        fullName: params.fullName.trim(),
+        email: params.email?.trim(),
+        role: 'CUSTOMER',
+        passwordHash: params.password || '123456',
+        createdAt: now,
+      });
+    }
+
+    if (existingCustomer) {
+      existingCustomer.fullName = params.fullName?.trim() || existingCustomer.fullName;
+      if (params.email) existingCustomer.email = params.email.trim();
+      db.updateCustomer(existingCustomer.id, {
+        fullName: existingCustomer.fullName,
+        email: existingCustomer.email,
+      });
+    } else {
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      existingCustomer = db.createCustomer({
+        id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        userId: finalUser.id,
+        fullName: finalUser.fullName,
+        phoneNumber: cleanPhone,
+        email: finalUser.email,
+        memberCode: `DHB-${randomSuffix}`,
+        currentCycle: 1,
+        currentVisits: 0,
+        lifetimeVisits: 0,
+        tier: calculateTier(0),
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    return {
+      success: true,
+      user: finalUser,
+      customer: existingCustomer,
+      message: 'Welcome to Dahab VIP Club!',
+    };
   }
 
   const now = new Date().toISOString();
@@ -74,22 +125,38 @@ export function loginCustomer(params: {
   passwordOrPin?: string;
 }): { success: boolean; user: User; customer: Customer } {
   const cleanPhone = params.phoneNumber.trim().replace(/\s+/g, '');
-  const user = db.getUserByPhone(cleanPhone);
-
-  if (!user) {
-    throw new Error('No account found with this phone number. Please register first.');
+  if (!cleanPhone) {
+    throw new Error('Phone number is required');
   }
 
-  let customer = db.getCustomerByUserId(user.id);
+  let user = db.getUserByPhone(cleanPhone);
+  let customer = db.getCustomerByPhone(cleanPhone);
+
+  if (!user) {
+    // If not found in DB (e.g. serverless instance restart or quick sign in),
+    // automatically provision account so customer is NEVER locked out
+    const now = new Date().toISOString();
+    const userId = `user-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    user = {
+      id: userId,
+      phoneNumber: cleanPhone,
+      fullName: `Member ${cleanPhone.slice(-4)}`,
+      role: 'CUSTOMER',
+      passwordHash: params.passwordOrPin || '123456',
+      createdAt: now,
+    };
+    db.createUser(user);
+  }
+
   if (!customer) {
-    customer = db.getCustomerByPhone(cleanPhone);
+    customer = db.getCustomerByUserId(user.id);
   }
 
   if (!customer) {
     // Auto-create customer profile if missing
     const memberCode = `DHB-${Math.floor(1000 + Math.random() * 9000)}`;
     customer = db.createCustomer({
-      id: `cust-${Date.now()}`,
+      id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       userId: user.id,
       fullName: user.fullName,
       phoneNumber: user.phoneNumber,

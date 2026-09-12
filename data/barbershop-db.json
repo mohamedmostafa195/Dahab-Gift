@@ -17,6 +17,15 @@
       "role": "CUSTOMER",
       "passwordHash": "123456",
       "createdAt": "2026-09-11T17:23:58.872Z"
+    },
+    {
+      "id": "user-1789213204715-58",
+      "phoneNumber": "01000774242",
+      "fullName": "Mostafaa",
+      "email": "Mohamed@gmail.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-09-12T11:40:04.715Z"
     }
   ],
   "customers": [
@@ -28,14 +37,52 @@
       "email": "mohameddmostafaa19@gmail.com",
       "memberCode": "DHB-9564",
       "currentCycle": 1,
+      "currentVisits": 2,
+      "lifetimeVisits": 2,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-11T17:23:58.872Z",
+      "updatedAt": "2026-09-11T17:29:22.132Z",
+      "lastVisitDate": "2026-09-11T17:29:22.129Z"
+    },
+    {
+      "id": "cust-1789213204716-163",
+      "userId": "user-1789213204715-58",
+      "fullName": "Mostafaa",
+      "phoneNumber": "01000774242",
+      "email": "Mohamed@gmail.com",
+      "memberCode": "DHB-8275",
+      "currentCycle": 1,
       "currentVisits": 0,
       "lifetimeVisits": 0,
       "tier": "BRONZE",
-      "createdAt": "2026-09-11T17:23:58.872Z",
-      "updatedAt": "2026-09-11T17:23:58.872Z"
+      "createdAt": "2026-09-12T11:40:04.715Z",
+      "updatedAt": "2026-09-12T11:40:04.715Z"
     }
   ],
-  "visits": [],
+  "visits": [
+    {
+      "id": "vis-1789147756972-835",
+      "customerId": "cust-1789147438874-262",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 1,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "sdsa",
+      "createdAt": "2026-09-11T17:29:16.972Z"
+    },
+    {
+      "id": "vis-1789147762129-857",
+      "customerId": "cust-1789147438874-262",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 2,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-11T17:29:22.129Z"
+    }
+  ],
   "rewards": [],
   "loyaltyRule": {
     "id": "rule-default-1",
