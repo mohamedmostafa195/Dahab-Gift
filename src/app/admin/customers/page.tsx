@@ -96,9 +96,13 @@ export default function AdminCustomersPage() {
     setSelectedCustomer(c);
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/admin/customers/${c.id}`);
+      const identifier = c.id || c.phoneNumber || c.memberCode;
+      const res = await fetch(`/api/admin/customers/${encodeURIComponent(identifier)}`);
       const data = await res.json();
       if (res.ok) {
+        if (data.customer) {
+          setSelectedCustomer(data.customer);
+        }
         setCustomerVisits(data.visits || []);
         setCustomerRewards(data.rewards || []);
       }

@@ -139,14 +139,24 @@ export const db = {
     return ensureDbFile().customers;
   },
   getCustomerById(id: string): Customer | undefined {
-    return ensureDbFile().customers.find((c) => c.id === id);
+    const clean = id.trim().replace(/[\s\-\+]/g, '');
+    return ensureDbFile().customers.find(
+      (c) =>
+        c.id === id ||
+        c.memberCode.toUpperCase() === id.trim().toUpperCase() ||
+        c.phoneNumber === id ||
+        c.phoneNumber.replace(/[\s\-\+]/g, '') === clean ||
+        c.userId === id
+    );
   },
   getCustomerByUserId(userId: string): Customer | undefined {
     return ensureDbFile().customers.find((c) => c.userId === userId);
   },
   getCustomerByPhone(phone: string): Customer | undefined {
-    const clean = phone.trim().replace(/\s+/g, '');
-    return ensureDbFile().customers.find((c) => c.phoneNumber.replace(/\s+/g, '') === clean);
+    const clean = phone.trim().replace(/[\s\-\+]/g, '');
+    return ensureDbFile().customers.find(
+      (c) => c.phoneNumber.replace(/[\s\-\+]/g, '') === clean
+    );
   },
   getCustomerByMemberCode(code: string): Customer | undefined {
     const clean = code.trim().toUpperCase();
@@ -160,7 +170,13 @@ export const db = {
   },
   updateCustomer(id: string, updates: Partial<Customer>): Customer | null {
     const data = ensureDbFile();
-    const idx = data.customers.findIndex((c) => c.id === id);
+    const clean = id.trim().replace(/[\s\-\+]/g, '');
+    const idx = data.customers.findIndex(
+      (c) =>
+        c.id === id ||
+        c.memberCode.toUpperCase() === id.trim().toUpperCase() ||
+        c.phoneNumber.replace(/[\s\-\+]/g, '') === clean
+    );
     if (idx === -1) return null;
     data.customers[idx] = {
       ...data.customers[idx],
@@ -199,8 +215,8 @@ export const db = {
     }
 
     // Remove customer visits & rewards
-    data.visits = data.visits.filter((v) => v.customerId !== customerId);
-    data.rewards = data.rewards.filter((r) => r.customerId !== customerId);
+    data.visits = data.visits.filter((v) => v.customerId !== customerId && v.customerId !== customer.memberCode);
+    data.rewards = data.rewards.filter((r) => r.customerId !== customerId && r.customerId !== customer.memberCode);
 
     saveDb(data);
     return true;
@@ -211,8 +227,23 @@ export const db = {
     return ensureDbFile().visits;
   },
   getVisitsByCustomerId(customerId: string): Visit[] {
-    return ensureDbFile()
-      .visits.filter((v) => v.customerId === customerId)
+    const dbData = ensureDbFile();
+    const clean = customerId.trim().replace(/[\s\-\+]/g, '');
+    const cust = dbData.customers.find(
+      (c) =>
+        c.id === customerId ||
+        c.memberCode.toUpperCase() === customerId.trim().toUpperCase() ||
+        c.phoneNumber.replace(/[\s\-\+]/g, '') === clean
+    );
+    const validIds = new Set<string>([customerId]);
+    if (cust) {
+      validIds.add(cust.id);
+      validIds.add(cust.memberCode);
+      validIds.add(cust.phoneNumber);
+    }
+
+    return dbData.visits
+      .filter((v) => validIds.has(v.customerId))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
   getVisitById(id: string): Visit | undefined {
@@ -246,8 +277,23 @@ export const db = {
     return ensureDbFile().rewards;
   },
   getRewardsByCustomerId(customerId: string): Reward[] {
-    return ensureDbFile()
-      .rewards.filter((r) => r.customerId === customerId)
+    const dbData = ensureDbFile();
+    const clean = customerId.trim().replace(/[\s\-\+]/g, '');
+    const cust = dbData.customers.find(
+      (c) =>
+        c.id === customerId ||
+        c.memberCode.toUpperCase() === customerId.trim().toUpperCase() ||
+        c.phoneNumber.replace(/[\s\-\+]/g, '') === clean
+    );
+    const validIds = new Set<string>([customerId]);
+    if (cust) {
+      validIds.add(cust.id);
+      validIds.add(cust.memberCode);
+      validIds.add(cust.phoneNumber);
+    }
+
+    return dbData.rewards
+      .filter((r) => validIds.has(r.customerId) || (cust && r.customerPhone && r.customerPhone.replace(/[\s\-\+]/g, '') === clean))
       .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime());
   },
   getRewardByCode(code: string): Reward | undefined {

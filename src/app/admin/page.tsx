@@ -169,7 +169,7 @@ export default function AdminDashboardOverview() {
                 {analytics?.totalCustomers ?? customers.length}
               </span>
               <p className="text-[11px] text-zinc-500 mt-1">
-                +{analytics?.newCustomersThisMonth ?? 3} new this month
+                +{analytics?.newCustomersThisMonth ?? 0} new this month
               </p>
             </div>
           </div>
@@ -184,10 +184,10 @@ export default function AdminDashboardOverview() {
             </div>
             <div>
               <span className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                {analytics?.totalVisits ?? 16}
+                {analytics?.totalVisits ?? 0}
               </span>
               <p className="text-[11px] text-amber-400/90 mt-1 font-medium">
-                {analytics?.visitsThisMonth ?? 8} visits this month
+                {analytics?.visitsThisMonth ?? 0} visits this month
               </p>
             </div>
           </div>
@@ -202,13 +202,13 @@ export default function AdminDashboardOverview() {
             </div>
             <div>
               <span className="text-2xl sm:text-3xl font-serif font-bold text-amber-300">
-                {analytics?.rewardsRedeemed ?? 3}{' '}
+                {analytics?.rewardsRedeemed ?? 0}{' '}
                 <span className="text-zinc-500 text-sm font-sans font-normal">
-                  / {analytics?.rewardsEarned ?? 6}
+                  / {analytics?.rewardsEarned ?? 0}
                 </span>
               </span>
               <p className="text-[11px] text-zinc-500 mt-1">
-                {analytics?.redemptionRate ?? 50}% redemption rate
+                {analytics?.redemptionRate ?? 0}% redemption rate
               </p>
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function AdminDashboardOverview() {
             </div>
             <div>
               <span className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                {analytics?.activeLoyaltyMembers ?? 5}
+                {analytics?.activeLoyaltyMembers ?? 0}
               </span>
               <p className="text-[11px] text-emerald-400 mt-1 font-medium">
                 Actively collecting stamps
