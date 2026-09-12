@@ -31,8 +31,13 @@ export default function MemberQRCodeModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Clean MemberCode payload for highest scanning compatibility and large clear QR blocks
-  const qrPayload = memberCode || phoneNumber;
+  // Complete Member Pass Payload for instant cross-device recognition & zero-friction sync
+  const qrPayload = JSON.stringify({
+    memberCode,
+    phone: phoneNumber,
+    name: customerName,
+    tier,
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in-0 duration-200">

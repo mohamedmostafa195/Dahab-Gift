@@ -31,6 +31,27 @@ interface DatabaseSchema {
   services: ServiceItem[];
 }
 
+// Cloud KV / Upstash Redis REST configuration (if configured in Vercel)
+const KV_REST_API_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_REST_API_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+const STORAGE_KEY = 'dahab_barbershop_db_v1';
+
+async function syncToCloud(data: DatabaseSchema): Promise<void> {
+  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return;
+  try {
+    await fetch(`${KV_REST_API_URL}/set/${STORAGE_KEY}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.error('Failed to sync DB to Cloud KV:', err);
+  }
+}
+
 // In serverless environments (like Vercel), the root project filesystem is read-only.
 // We use os.tmpdir() so that file caching works if possible, combined with in-memory caching.
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production');
@@ -87,6 +108,11 @@ function saveDb(data: DatabaseSchema): void {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving DB file:', err);
+  }
+
+  // Fire-and-forget sync to Cloud KV if available
+  if (KV_REST_API_URL && KV_REST_API_TOKEN) {
+    syncToCloud(data);
   }
 }
 

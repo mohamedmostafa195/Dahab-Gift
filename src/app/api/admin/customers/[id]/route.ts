@@ -10,11 +10,12 @@ export async function GET(
     let rawId = decodeURIComponent(resolvedParams.id || '').trim();
 
     // If id is JSON string (e.g. from QR code directly)
+    let jsonPayload: any = null;
     let parsedIdentifier = rawId;
     try {
       if (rawId.startsWith('{') && rawId.endsWith('}')) {
-        const parsed = JSON.parse(rawId);
-        parsedIdentifier = parsed.memberCode || parsed.phone || parsed.id || parsedIdentifier;
+        jsonPayload = JSON.parse(rawId);
+        parsedIdentifier = jsonPayload.memberCode || jsonPayload.phone || jsonPayload.code || jsonPayload.id || parsedIdentifier;
       }
     } catch (e) {
       // not JSON, continue
@@ -37,6 +38,46 @@ export async function GET(
         c.userId === cleanInput
       );
     });
+
+    // Auto-provision if scanning a member QR pass that exists on customer phone but not in current serverless instance
+    if (!customer) {
+      if (jsonPayload && (jsonPayload.phone || jsonPayload.memberCode || jsonPayload.code)) {
+        const phone = (jsonPayload.phone || cleanPhone || '').trim();
+        const memberCode = (jsonPayload.memberCode || jsonPayload.code || `DHB-${Math.floor(1000 + Math.random() * 9000)}`).trim();
+        const fullName = (jsonPayload.name || jsonPayload.fullName || `Member ${phone.slice(-4)}`).trim();
+        const now = new Date().toISOString();
+
+        customer = db.createCustomer({
+          id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          userId: `user-${Date.now()}`,
+          fullName,
+          phoneNumber: phone,
+          email: jsonPayload.email,
+          memberCode,
+          currentCycle: 1,
+          currentVisits: 0,
+          lifetimeVisits: 0,
+          tier: jsonPayload.tier || 'BRONZE',
+          createdAt: now,
+          updatedAt: now,
+        });
+      } else if (cleanPhone && cleanPhone.length >= 10 && /^01[0-2,5]{1}[0-9]{8}$/.test(cleanPhone)) {
+        const now = new Date().toISOString();
+        customer = db.createCustomer({
+          id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          userId: `user-${Date.now()}`,
+          fullName: `Member ${cleanPhone.slice(-4)}`,
+          phoneNumber: cleanPhone,
+          memberCode: `DHB-${Math.floor(1000 + Math.random() * 9000)}`,
+          currentCycle: 1,
+          currentVisits: 0,
+          lifetimeVisits: 0,
+          tier: 'BRONZE',
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
 
     if (!customer) {
       return NextResponse.json({ error: 'Customer not found with this QR pass or Phone Number' }, { status: 404 });
