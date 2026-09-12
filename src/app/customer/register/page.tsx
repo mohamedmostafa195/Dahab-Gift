@@ -3,13 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Scissors, Phone, User, Mail, Lock, ArrowRight, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { Scissors, Phone, User, Lock, ArrowRight, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function CustomerRegisterPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,7 +26,6 @@ export default function CustomerRegisterPage() {
           action: 'register',
           fullName,
           phoneNumber,
-          email: email || undefined,
           password: password || '123456',
         }),
       });
@@ -118,22 +116,6 @@ export default function CustomerRegisterPage() {
               </p>
             </div>
 
-            {/* Email (Optional) */}
-            <div>
-              <label className="block text-xs uppercase tracking-wider text-zinc-300 font-semibold mb-1.5">
-                Email Address (Optional)
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@example.com"
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400"
-                />
-              </div>
-            </div>
 
             {/* Password */}
             <div>
