@@ -41,10 +41,6 @@ const DB_FILE = path.join(DB_DIR, 'barbershop-db.json');
 let memoryDb: DatabaseSchema | null = null;
 
 function ensureDbFile(): DatabaseSchema {
-  if (memoryDb) {
-    return memoryDb;
-  }
-
   try {
     if (!fs.existsSync(DB_DIR)) {
       fs.mkdirSync(DB_DIR, { recursive: true });
@@ -60,6 +56,10 @@ function ensureDbFile(): DatabaseSchema {
     }
   } catch (err) {
     console.error('Error reading DB file:', err);
+  }
+
+  if (memoryDb) {
+    return memoryDb;
   }
 
   // Initialize with seed data
@@ -172,9 +172,17 @@ export const db = {
   },
   deleteCustomer(id: string): boolean {
     const data = ensureDbFile();
-    const idx = data.customers.findIndex((c) => c.id === id);
+    const clean = id.trim().replace(/[\s\-\+]/g, '');
+    const idx = data.customers.findIndex(
+      (c) =>
+        c.id === id ||
+        c.memberCode.toUpperCase() === id.trim().toUpperCase() ||
+        c.phoneNumber === id ||
+        c.phoneNumber.replace(/[\s\-\+]/g, '') === clean
+    );
     if (idx === -1) return false;
     const customer = data.customers[idx];
+    const customerId = customer.id;
 
     // Remove customer record
     data.customers.splice(idx, 1);
@@ -182,13 +190,17 @@ export const db = {
     // Remove associated user (if role is CUSTOMER)
     if (customer.userId) {
       data.users = data.users.filter((u) => u.id !== customer.userId || u.role === 'ADMIN');
-    } else if (customer.phoneNumber) {
-      data.users = data.users.filter((u) => u.phoneNumber !== customer.phoneNumber || u.role === 'ADMIN');
+    }
+    if (customer.phoneNumber) {
+      const pClean = customer.phoneNumber.replace(/[\s\-\+]/g, '');
+      data.users = data.users.filter(
+        (u) => u.phoneNumber.replace(/[\s\-\+]/g, '') !== pClean || u.role === 'ADMIN'
+      );
     }
 
     // Remove customer visits & rewards
-    data.visits = data.visits.filter((v) => v.customerId !== id);
-    data.rewards = data.rewards.filter((r) => r.customerId !== id);
+    data.visits = data.visits.filter((v) => v.customerId !== customerId);
+    data.rewards = data.rewards.filter((r) => r.customerId !== customerId);
 
     saveDb(data);
     return true;

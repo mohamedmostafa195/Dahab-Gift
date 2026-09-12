@@ -4,7 +4,9 @@ import { db } from '@/lib/storage';
 export async function GET() {
   try {
     const rule = db.getLoyaltyRule();
-    return NextResponse.json({ rule });
+    const barbers = db.getBarbers();
+    const services = db.getServices();
+    return NextResponse.json({ rule, barbers, services });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Failed to fetch settings' },

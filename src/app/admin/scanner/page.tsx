@@ -39,18 +39,12 @@ export default function AdminScannerPage() {
 
   const fetchMetadata = async () => {
     try {
-      const [setRes, meRes] = await Promise.all([
-        fetch('/api/admin/settings'),
-        fetch('/api/customer/me?phone=01012345678'),
-      ]);
+      const setRes = await fetch('/api/admin/settings');
       if (setRes.ok) {
         const setData = await setRes.json();
         setRule(setData.rule);
-      }
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        setBarbers(meData.barbers || []);
-        setServices(meData.services || []);
+        setBarbers(setData.barbers || []);
+        setServices(setData.services || []);
       }
     } catch (e) {
       console.error(e);

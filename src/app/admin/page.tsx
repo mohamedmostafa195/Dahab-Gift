@@ -68,14 +68,8 @@ export default function AdminDashboardOverview() {
       if (settingsRes.ok) {
         const setData = await settingsRes.json();
         setRule(setData.rule);
-      }
-
-      // Load barbers and services from storage/me endpoint
-      const meRes = await fetch('/api/customer/me?phone=01012345678');
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        setBarbers(meData.barbers || []);
-        setServices(meData.services || []);
+        setBarbers(setData.barbers || []);
+        setServices(setData.services || []);
       }
     } catch (e) {
       console.error('Failed to load dashboard data:', e);

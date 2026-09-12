@@ -81,11 +81,11 @@ export default function AdminCustomersPage() {
 
   const fetchBarbersAndServices = async () => {
     try {
-      const meRes = await fetch('/api/customer/me?phone=01012345678');
-      if (meRes.ok) {
-        const meData = await meRes.json();
-        setBarbers(meData.barbers || []);
-        setServices(meData.services || []);
+      const res = await fetch('/api/admin/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setBarbers(data.barbers || []);
+        setServices(data.services || []);
       }
     } catch (e) {
       console.error(e);

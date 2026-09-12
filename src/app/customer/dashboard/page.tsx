@@ -42,13 +42,17 @@ export default function CustomerDashboardPage() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const phone = localStorage.getItem('dahab_customer_phone') || '01012345678';
+      const phone = localStorage.getItem('dahab_customer_phone');
       const customerId = localStorage.getItem('dahab_customer_id');
+
+      if (!phone && !customerId) {
+        router.push('/customer/login');
+        return;
+      }
+
       const queryParam = phone
         ? `phone=${encodeURIComponent(phone)}`
-        : customerId
-        ? `customerId=${encodeURIComponent(customerId)}`
-        : `phone=01012345678`;
+        : `customerId=${encodeURIComponent(customerId!)}`;
 
       const res = await fetch(`/api/customer/me?${queryParam}`);
       const data = await res.json();
