@@ -6,6 +6,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    await db.syncFromCloud();
     const resolvedParams = await Promise.resolve(context.params);
     let rawId = decodeURIComponent(resolvedParams.id || '').trim();
 
@@ -121,6 +122,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    await db.syncFromCloud();
     const resolvedParams = await Promise.resolve(context.params);
     const { id } = resolvedParams;
     const body = await req.json();
@@ -144,6 +146,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    await db.syncFromCloud();
     const resolvedParams = await Promise.resolve(context.params);
     const { id } = resolvedParams;
 

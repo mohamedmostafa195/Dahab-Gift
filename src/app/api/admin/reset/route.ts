@@ -3,6 +3,7 @@ import { db } from '@/lib/storage';
 
 export async function POST() {
   try {
+    await db.syncFromCloud();
     const data = db.resetToDefaults();
     return NextResponse.json({
       success: true,

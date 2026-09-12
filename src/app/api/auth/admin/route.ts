@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/storage';
 import { loginAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const body = await req.json();
     const { identifier, password } = body;
 

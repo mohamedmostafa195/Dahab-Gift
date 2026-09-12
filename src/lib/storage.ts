@@ -32,24 +32,75 @@ interface DatabaseSchema {
 }
 
 // Cloud KV / Upstash Redis REST configuration (if configured in Vercel)
-const KV_REST_API_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const KV_REST_API_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+const KV_REST_API_URL =
+  process.env.KV_REST_API_URL ||
+  process.env.UPSTASH_REDIS_REST_URL ||
+  process.env.KV_URL;
+const KV_REST_API_TOKEN =
+  process.env.KV_REST_API_TOKEN ||
+  process.env.UPSTASH_REDIS_REST_TOKEN ||
+  process.env.KV_REST_API_READ_ONLY_TOKEN;
 const STORAGE_KEY = 'dahab_barbershop_db_v1';
 
 async function syncToCloud(data: DatabaseSchema): Promise<void> {
   if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return;
   try {
-    await fetch(`${KV_REST_API_URL}/set/${STORAGE_KEY}`, {
+    const url = KV_REST_API_URL.replace(/\/+$/, '');
+    await fetch(`${url}/set/${STORAGE_KEY}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${KV_REST_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
+      cache: 'no-store',
     });
   } catch (err) {
     console.error('Failed to sync DB to Cloud KV:', err);
   }
+}
+
+async function syncFromCloud(): Promise<DatabaseSchema> {
+  const local = ensureDbFile();
+  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) {
+    return local;
+  }
+
+  try {
+    const url = KV_REST_API_URL.replace(/\/+$/, '');
+    const res = await fetch(`${url}/get/${STORAGE_KEY}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      let result = json.result;
+      if (typeof result === 'string') {
+        try {
+          result = JSON.parse(result);
+        } catch (e) {}
+      }
+
+      if (result && Array.isArray(result.customers)) {
+        memoryDb = result as DatabaseSchema;
+        try {
+          if (!fs.existsSync(DB_DIR)) {
+            fs.mkdirSync(DB_DIR, { recursive: true });
+          }
+          fs.writeFileSync(DB_FILE, JSON.stringify(result, null, 2), 'utf-8');
+        } catch (e) {}
+        return memoryDb;
+      }
+    }
+  } catch (err) {
+    console.error('Error reading from Cloud KV:', err);
+  }
+
+  return local;
 }
 
 // In serverless environments (like Vercel), the root project filesystem is read-only.
@@ -117,6 +168,15 @@ function saveDb(data: DatabaseSchema): void {
 }
 
 export const db = {
+  // CLOUD SYNC
+  async syncFromCloud(): Promise<DatabaseSchema> {
+    return syncFromCloud();
+  },
+  async syncToCloud(data?: DatabaseSchema): Promise<void> {
+    const d = data || ensureDbFile();
+    return syncToCloud(d);
+  },
+
   // RESET
   resetToDefaults(): DatabaseSchema {
     const defaultData: DatabaseSchema = {

@@ -4,6 +4,7 @@ import { redeemCustomerReward } from '@/lib/loyalty';
 
 export async function GET(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status'); // AVAILABLE | REDEEMED
     const customerId = searchParams.get('customerId');
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const body = await req.json();
     const { rewardIdOrCode, redeemedBy } = body;
 

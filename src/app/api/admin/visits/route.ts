@@ -4,6 +4,7 @@ import { logCustomerVisit, removeCustomerVisit } from '@/lib/loyalty';
 
 export async function GET(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get('customerId');
 
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const body = await req.json();
     const {
       customerId,
@@ -83,6 +85,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const { searchParams } = new URL(req.url);
     const visitId = searchParams.get('id');
 
@@ -105,6 +108,7 @@ export async function DELETE(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const body = await req.json();
     const { id, serviceName, barberName, price, notes } = body;
 

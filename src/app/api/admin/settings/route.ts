@@ -3,6 +3,7 @@ import { db } from '@/lib/storage';
 
 export async function GET() {
   try {
+    await db.syncFromCloud();
     const rule = db.getLoyaltyRule();
     const barbers = db.getBarbers();
     const services = db.getServices();
@@ -17,6 +18,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const body = await req.json();
     const { targetVisits, rewardTitle, rewardDesc, shopName, phonePrefix } = body;
 

@@ -3,6 +3,7 @@ import { db } from '@/lib/storage';
 
 export async function GET(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const { searchParams } = new URL(req.url);
     const phone = searchParams.get('phone');
     const customerId = searchParams.get('customerId');

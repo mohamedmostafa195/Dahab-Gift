@@ -4,6 +4,7 @@ import { registerCustomer } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search')?.toLowerCase() || '';
     const filter = searchParams.get('filter') || 'all'; // all, reward-ready, active, new
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const body = await req.json();
     const { fullName, phoneNumber, email, notes } = body;
 
@@ -91,6 +93,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    await db.syncFromCloud();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
