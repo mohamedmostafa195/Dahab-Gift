@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AdminHeader from '@/components/admin/AdminHeader';
 import QuickVisitModal from '@/components/admin/QuickVisitModal';
 import CelebrationModal from '@/components/admin/CelebrationModal';
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminDashboardOverview() {
+  const router = useRouter();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rule, setRule] = useState<LoyaltyRule | null>(null);
@@ -346,23 +348,23 @@ export default function AdminDashboardOverview() {
                     </Link>
 
                     <div className="flex items-center gap-2">
-                      {isRewardReady && (
-                        <button
-                          onClick={() => handleRedeemReward(c)}
-                          className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs transition flex items-center gap-1 shadow-sm"
+                      {isRewardReady ? (
+                        <div
+                          className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700/80 text-zinc-400 font-semibold text-xs flex items-center gap-1.5 cursor-not-allowed select-none opacity-75"
+                          title="Redeem from Rewards Vouchers tab in the sidebar"
                         >
-                          <Gift className="w-3.5 h-3.5" />
-                          Redeem
+                          <Gift className="w-3.5 h-3.5 text-zinc-500" />
+                          <span>Redeem Voucher</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleQuickAddVisit(c)}
+                          className="gold-btn px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          +1 Haircut
                         </button>
                       )}
-
-                      <button
-                        onClick={() => handleQuickAddVisit(c)}
-                        className="gold-btn px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        +1 Haircut
-                      </button>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminHeader from '@/components/admin/AdminHeader';
 import QuickVisitModal from '@/components/admin/QuickVisitModal';
 import CelebrationModal from '@/components/admin/CelebrationModal';
@@ -34,6 +35,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminCustomersPage() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rule, setRule] = useState<LoyaltyRule | null>(null);
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -149,16 +151,17 @@ export default function AdminCustomersPage() {
     }
   };
 
-  const handleRedeemReward = async (rewardId: string) => {
+  const handleRedeemReward = async (identifier: string) => {
     try {
       const res = await fetch('/api/admin/rewards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewardIdOrCode: rewardId, redeemedBy: 'Master Barber' }),
+        body: JSON.stringify({ rewardIdOrCode: identifier, redeemedBy: 'Master Barber' }),
       });
 
       const data = await res.json();
       if (res.ok) {
+        alert(data.message || 'Reward redeemed successfully! New cycle started with 0 stamps.');
         fetchCustomers();
         if (selectedCustomer) {
           openCustomerDetail(data.customer || selectedCustomer);
@@ -372,17 +375,27 @@ export default function AdminCustomersPage() {
                       {/* Quick Actions */}
                       <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => {
-                              setCustomerForVisit(c);
-                              setQuickVisitModalOpen(true);
-                            }}
-                            className="gold-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm"
-                            title="Add Haircut Visit"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>+1 Visit</span>
-                          </button>
+                          {isReady ? (
+                            <div
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700/80 text-zinc-400 text-xs font-semibold cursor-not-allowed select-none opacity-70"
+                              title="Customer completed 5/5 stamps! Redeem voucher from Rewards Vouchers tab."
+                            >
+                              <Gift className="w-3.5 h-3.5 text-zinc-500" />
+                              <span>Redeem Voucher</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setCustomerForVisit(c);
+                                setQuickVisitModalOpen(true);
+                              }}
+                              className="gold-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm"
+                              title="Add Haircut Visit"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>+1 Visit</span>
+                            </button>
+                          )}
 
                           <button
                             onClick={() => handleDeleteCustomer(c.id, c.fullName)}
@@ -436,23 +449,52 @@ export default function AdminCustomersPage() {
                 </button>
               </div>
 
-              {/* Quick Info & Stats */}
-              <div className="grid grid-cols-3 gap-3 my-5">
+              {/* Stamp Progress Bar */}
+              <div className="my-6 p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs uppercase tracking-wider text-zinc-400 font-bold">
+                    Current Cycle Loyalty
+                  </span>
+                  <span className="font-mono text-sm font-bold text-amber-400">
+                    {selectedCustomer.currentVisits}/{targetVisits} Stamps
+                  </span>
+                </div>
+                <div className="w-full bg-zinc-950 rounded-full h-2.5 overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        Math.round((selectedCustomer.currentVisits / targetVisits) * 100)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                  <span>Cycle #{selectedCustomer.currentCycle}</span>
+                  <span>
+                    {targetVisits - selectedCustomer.currentVisits > 0
+                      ? `${targetVisits - selectedCustomer.currentVisits} cuts to reward`
+                      : '★ Reward Ready!'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stats 3 Columns */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
                 <div className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-center">
                   <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
-                    Current Stamps
+                    Current Cycle
                   </span>
-                  <span className="text-xl font-mono font-bold text-amber-400">
-                    {selectedCustomer.currentVisits}/{targetVisits}
+                  <span className="text-xl font-mono font-bold text-white">
+                    #{selectedCustomer.currentCycle}
                   </span>
-                  <span className="text-[10px] text-zinc-500 block">
-                    Cycle #{selectedCustomer.currentCycle}
-                  </span>
+                  <span className="text-[10px] text-zinc-500 block">Stamps: {selectedCustomer.currentVisits}</span>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-center">
                   <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
-                    Lifetime Visits
+                    Lifetime Cuts
                   </span>
                   <span className="text-xl font-mono font-bold text-white">
                     {selectedCustomer.lifetimeVisits}
@@ -473,20 +515,27 @@ export default function AdminCustomersPage() {
 
               {/* Action Bar */}
               <div className="flex items-center gap-3 mb-6">
-                <button
-                  onClick={() => {
-                    setCustomerForVisit(selectedCustomer);
-                    setQuickVisitModalOpen(true);
-                  }}
-                  className="gold-btn flex-1 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+1 Add Haircut Visit</span>
-                </button>
+                {selectedCustomer.currentVisits >= targetVisits || customerRewards.some((r) => r.status === 'AVAILABLE') ? (
+                  <div className="flex-1 py-3.5 px-4 rounded-xl bg-zinc-900/90 border border-zinc-700 text-zinc-400 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none opacity-80">
+                    <Gift className="w-4 h-4 text-zinc-500" />
+                    <span>🎁 5/5 Completed — Redeem Voucher from "Rewards Vouchers" Page</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setCustomerForVisit(selectedCustomer);
+                      setQuickVisitModalOpen(true);
+                    }}
+                    className="gold-btn flex-1 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+1 Add Haircut Visit</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => handleDeleteCustomer(selectedCustomer.id, selectedCustomer.fullName)}
-                  className="px-4 py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                  className="px-4 py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition shrink-0"
                   title="Delete Customer Profile"
                 >
                   <Trash2 className="w-4 h-4" />

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminHeader from '@/components/admin/AdminHeader';
 import CameraQRScanner from '@/components/admin/CameraQRScanner';
 import QuickVisitModal from '@/components/admin/QuickVisitModal';
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminScannerPage() {
+  const router = useRouter();
   const [scannedCustomer, setScannedCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
@@ -66,6 +68,15 @@ export default function AdminScannerPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRedeemScannedCustomer = () => {
+    if (!scannedCustomer) return;
+    router.push(
+      `/admin/rewards?search=${encodeURIComponent(
+        scannedCustomer.phoneNumber || scannedCustomer.fullName || scannedCustomer.memberCode
+      )}`
+    );
   };
 
   const targetVisits = rule?.targetVisits || 5;
@@ -168,13 +179,20 @@ export default function AdminScannerPage() {
                   </div>
 
                   {/* Action Button */}
-                  <button
-                    onClick={() => setQuickVisitModalOpen(true)}
-                    className="gold-btn w-full py-3.5 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>+1 Add Haircut to Account</span>
-                  </button>
+                  {scannedCustomer.currentVisits >= targetVisits ? (
+                    <div className="w-full py-3.5 px-4 rounded-xl bg-zinc-900/90 border border-zinc-700 text-zinc-400 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none opacity-80 text-center">
+                      <Gift className="w-4 h-4 text-zinc-500 shrink-0" />
+                      <span>🎁 5/5 Stamps Reached — Must Redeem from "Rewards Vouchers" Page</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setQuickVisitModalOpen(true)}
+                      className="gold-btn w-full py-3.5 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+1 Add Haircut to Account</span>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="py-12 text-center text-zinc-500 space-y-2">

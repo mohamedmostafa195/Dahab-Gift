@@ -77,7 +77,14 @@ export function logCustomerVisit(params: LogVisitParams): AddVisitResult {
   const rule = db.getLoyaltyRule();
   const target = rule.targetVisits || 5;
 
-  const newCurrentVisits = customer.currentVisits + 1;
+  // Block adding more visits if customer already completed target (e.g. 5/5) and has not redeemed reward
+  if (customer.currentVisits >= target) {
+    throw new Error(
+      `Customer ${customer.fullName} has already completed ${target}/${target} stamps! Please redeem the free reward voucher first before logging new visits.`
+    );
+  }
+
+  const newCurrentVisits = Math.min(target, customer.currentVisits + 1);
   const newLifetimeVisits = customer.lifetimeVisits + 1;
   const now = new Date().toISOString();
 
@@ -145,20 +152,60 @@ export function redeemCustomerReward(rewardIdOrCode: string, redeemedBy: string 
     reward = db.getRewardByCode(rewardIdOrCode);
   }
 
+  // If passed a customer ID or phone or member code
+  let customer: Customer | undefined;
+  if (reward) {
+    customer = db.getCustomerById(reward.customerId);
+  } else {
+    customer =
+      db.getCustomerById(rewardIdOrCode) ||
+      db.getCustomerByPhone(rewardIdOrCode) ||
+      db.getCustomerByMemberCode(rewardIdOrCode);
+
+    if (customer) {
+      const unredeemed = db.getRewardsByCustomerId(customer.id).filter((r) => r.status === 'AVAILABLE');
+      if (unredeemed.length > 0) {
+        reward = unredeemed[0];
+      }
+    }
+  }
+
+  const rule = db.getLoyaltyRule();
+  const target = rule.targetVisits || 5;
+  const now = new Date().toISOString();
+
+  if (!customer && reward) {
+    customer = db.getCustomerById(reward.customerId);
+  }
+
+  if (!customer) {
+    throw new Error('Customer linked to this reward was not found.');
+  }
+
+  // If customer completed 5/5 but reward object was missing, auto-create reward to redeem
+  if (!reward && customer.currentVisits >= target) {
+    reward = {
+      id: `rwd-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      customerId: customer.id,
+      customerName: customer.fullName,
+      customerPhone: customer.phoneNumber,
+      voucherCode: generateRandomCode('DHB-RWD'),
+      title: rule.rewardTitle || 'Free Signature Haircut',
+      description: `Cycle ${customer.currentCycle} Reward: ${rule.rewardDesc}`,
+      cycleNumber: customer.currentCycle,
+      status: 'AVAILABLE',
+      earnedAt: now,
+    };
+    db.createReward(reward);
+  }
+
   if (!reward) {
-    throw new Error('Reward voucher not found');
+    throw new Error('No available reward found for this customer to redeem.');
   }
 
   if (reward.status === 'REDEEMED') {
     throw new Error('This reward has already been redeemed.');
   }
-
-  const customer = db.getCustomerById(reward.customerId);
-  if (!customer) {
-    throw new Error('Customer linked to this reward was not found.');
-  }
-
-  const now = new Date().toISOString();
 
   // Mark reward as redeemed
   const updatedReward = db.updateReward(reward.id, {
@@ -167,12 +214,9 @@ export function redeemCustomerReward(rewardIdOrCode: string, redeemedBy: string 
     redeemedBy,
   });
 
-  const rule = db.getLoyaltyRule();
-  const target = rule.targetVisits || 5;
-
   // Advance to next cycle & reset stamp count
   const newCycle = customer.currentCycle + 1;
-  const newCurrentVisits = Math.max(0, customer.currentVisits - target);
+  const newCurrentVisits = 0; // Fresh new cycle starts at 0 stamps
 
   const updatedCustomer = db.updateCustomer(customer.id, {
     currentCycle: newCycle,
@@ -184,7 +228,7 @@ export function redeemCustomerReward(rewardIdOrCode: string, redeemedBy: string 
     success: true,
     reward: updatedReward,
     customer: updatedCustomer,
-    message: `Reward "${reward.title}" redeemed successfully! Cycle ${newCycle} has begun with ${newCurrentVisits}/${target} stamps.`,
+    message: `Reward "${reward.title}" redeemed successfully! Cycle ${newCycle} has begun with 0/${target} stamps.`,
   };
 }
 

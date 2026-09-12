@@ -36,12 +36,14 @@ export async function GET(req: NextRequest) {
     const customersWithDetails = customers.map((c) => {
       const custRewards = rewards.filter((r) => r.customerId === c.id);
       const availableRewards = custRewards.filter((r) => r.status === 'AVAILABLE');
+      const currentVisits = Math.min(rule.targetVisits, c.currentVisits);
       return {
         ...c,
+        currentVisits,
         availableRewardsCount: availableRewards.length,
         totalRewardsEarned: custRewards.length,
         targetVisits: rule.targetVisits,
-        isReadyForReward: c.currentVisits >= rule.targetVisits || availableRewards.length > 0,
+        isReadyForReward: currentVisits >= rule.targetVisits || availableRewards.length > 0,
       };
     });
 

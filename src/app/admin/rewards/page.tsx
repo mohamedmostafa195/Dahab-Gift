@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AdminHeader from '@/components/admin/AdminHeader';
 import RewardCard from '@/components/customer/RewardCard';
 import { Reward } from '@/types';
@@ -15,14 +16,26 @@ import {
   Filter,
 } from 'lucide-react';
 
-export default function AdminRewardsPage() {
+function RewardsContent() {
+  const searchParams = useSearchParams();
+  const queryParam = searchParams.get('search') || searchParams.get('q') || searchParams.get('code') || '';
+
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(queryParam);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'AVAILABLE' | 'REDEEMED'>('ALL');
-  const [voucherInput, setVoucherInput] = useState('');
+  const [voucherInput, setVoucherInput] = useState(queryParam.toUpperCase().startsWith('DHB-RWD') ? queryParam : '');
   const [redeemSuccess, setRedeemSuccess] = useState<string | null>(null);
   const [redeemError, setRedeemError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (queryParam) {
+      setSearchQuery(queryParam);
+      if (queryParam.toUpperCase().startsWith('DHB-RWD')) {
+        setVoucherInput(queryParam);
+      }
+    }
+  }, [queryParam]);
 
   useEffect(() => {
     fetchRewards();
@@ -192,5 +205,13 @@ export default function AdminRewardsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AdminRewardsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-zinc-400">Loading Rewards...</div>}>
+      <RewardsContent />
+    </Suspense>
   );
 }

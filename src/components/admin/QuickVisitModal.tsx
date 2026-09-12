@@ -36,7 +36,8 @@ export default function QuickVisitModal({
 
   if (!isOpen) return null;
 
-  const nextVisits = customer.currentVisits + 1;
+  const isAlreadyAtMax = customer.currentVisits >= targetVisits;
+  const nextVisits = Math.min(targetVisits, customer.currentVisits + 1);
   const willUnlockReward = nextVisits >= targetVisits;
 
   const handleServiceChange = (serviceName: string) => {
@@ -49,6 +50,10 @@ export default function QuickVisitModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAlreadyAtMax) {
+      setError(`Customer has already completed ${targetVisits}/${targetVisits} stamps! Please redeem the reward voucher first.`);
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -238,14 +243,20 @@ export default function QuickVisitModal({
 
             <button
               type="submit"
-              disabled={loading}
-              className="gold-btn px-6 py-2.5 rounded-xl font-bold text-sm tracking-wide flex items-center gap-2 shadow-lg"
+              disabled={loading || isAlreadyAtMax}
+              className={`px-6 py-2.5 rounded-xl font-bold text-sm tracking-wide flex items-center gap-2 shadow-lg transition ${
+                isAlreadyAtMax
+                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700'
+                  : 'gold-btn'
+              }`}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Recording...
                 </>
+              ) : isAlreadyAtMax ? (
+                <span>5/5 Completed (Redeem Voucher First)</span>
               ) : (
                 <>
                   <Plus className="w-4 h-4" />
