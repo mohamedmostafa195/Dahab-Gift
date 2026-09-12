@@ -95,15 +95,6 @@ export default function Footer() {
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />
                 <span className="font-mono text-zinc-200">+20 10 1234 5678</span>
               </li>
-              <li className="pt-2">
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-amber-400 transition"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Barber / Staff Login
-                </Link>
-              </li>
             </ul>
           </div>
         </div>

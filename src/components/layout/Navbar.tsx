@@ -32,33 +32,21 @@ export default function Navbar() {
           </Link>
           <Link href="/#loyalty" className="hover:text-amber-300 transition flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Loyalty Program
+            Loyalty Rewards (5=1 Free)
           </Link>
           <Link href="/#barbers" className="hover:text-amber-300 transition">
             Master Barbers
-          </Link>
-          <Link href="/customer/login" className="hover:text-amber-300 transition flex items-center gap-1.5">
-            <QrCode className="w-4 h-4 text-amber-400" />
-            Check My Stamps
           </Link>
         </nav>
 
         {/* Action Buttons */}
         <div className="hidden sm:flex items-center gap-3">
           <Link
-            href="/admin"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 border border-zinc-800 hover:border-amber-500/40 transition"
-          >
-            <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>Admin Portal</span>
-          </Link>
-
-          <Link
             href="/customer/login"
-            className="gold-btn px-5 py-2 rounded-xl text-xs font-black tracking-wide flex items-center gap-1.5 shadow-md shadow-amber-500/20"
+            className="gold-btn px-5 py-2.5 rounded-xl text-xs font-black tracking-wide flex items-center gap-1.5 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition"
           >
             <User className="w-4 h-4" />
-            <span>Member Login</span>
+            <span>Login</span>
           </Link>
         </div>
 
@@ -88,7 +76,7 @@ export default function Navbar() {
               className="py-2 text-amber-400 font-semibold flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
-              Loyalty Program
+              Loyalty Rewards (5=1 Free)
             </Link>
             <Link
               href="/#barbers"
@@ -96,14 +84,6 @@ export default function Navbar() {
               className="py-2 text-zinc-300 hover:text-amber-400"
             >
               Master Barbers
-            </Link>
-            <Link
-              href="/customer/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-zinc-300 hover:text-amber-400 flex items-center gap-2"
-            >
-              <QrCode className="w-4 h-4 text-amber-400" />
-              Check My Stamps
             </Link>
           </div>
 
@@ -114,15 +94,7 @@ export default function Navbar() {
               className="gold-btn w-full py-3 rounded-xl text-center text-sm font-bold flex items-center justify-center gap-2"
             >
               <User className="w-4 h-4" />
-              Member Login / Register
-            </Link>
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-center text-xs text-zinc-300 flex items-center justify-center gap-2"
-            >
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
-              Admin & Barber Portal
+              Login
             </Link>
           </div>
         </div>

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { registerCustomer, loginCustomer } from '@/lib/auth';
+import { registerCustomer, loginCustomer, loginAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, fullName, phoneNumber, password, email } = body;
+    const { action, fullName, phoneNumber, identifier, password, email } = body;
 
     if (action === 'register') {
       if (!fullName || !phoneNumber) {
@@ -21,21 +21,50 @@ export async function POST(req: NextRequest) {
         password,
       });
 
-      return NextResponse.json(res, { status: 201 });
-    } else if (action === 'login') {
-      if (!phoneNumber) {
+      return NextResponse.json({ ...res, role: 'CUSTOMER' }, { status: 201 });
+    } else if (action === 'login' || !action) {
+      const loginId = (identifier || phoneNumber || '').trim();
+      if (!loginId) {
         return NextResponse.json(
-          { error: 'Phone Number is required' },
+          { error: 'Phone Number or Email is required' },
           { status: 400 }
         );
       }
 
+      const lower = loginId.toLowerCase();
+      const isAdminAttempt =
+        lower === 'admin' ||
+        lower.includes('admin@') ||
+        loginId === '01000000000';
+
+      if (isAdminAttempt) {
+        try {
+          const adminRes = loginAdmin({
+            identifier: loginId,
+            passwordOrPin: password || '',
+          });
+          return NextResponse.json({
+            success: true,
+            role: 'ADMIN',
+            user: adminRes.user,
+          }, { status: 200 });
+        } catch (err: any) {
+          return NextResponse.json(
+            { error: err.message || 'Invalid credentials' },
+            { status: 401 }
+          );
+        }
+      }
+
       const res = loginCustomer({
-        phoneNumber,
+        phoneNumber: loginId,
         passwordOrPin: password,
       });
 
-      return NextResponse.json(res, { status: 200 });
+      return NextResponse.json({
+        ...res,
+        role: 'CUSTOMER',
+      }, { status: 200 });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

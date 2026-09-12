@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Clock,
   Star,
+  User,
   Users,
   Award,
   Phone,
@@ -23,7 +24,6 @@ import {
 import { INITIAL_SERVICES, INITIAL_BARBERS } from '@/lib/seed-data';
 
 export default function LandingPage() {
-  const [demoStamps, setDemoStamps] = useState(4);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
 
   const filteredServices =
@@ -36,8 +36,8 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden">
-        {/* Background gradient lights */}
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden">
+        {/* Ambient background glow lights */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-10 right-10 w-96 h-96 bg-amber-600/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -47,34 +47,26 @@ export default function LandingPage() {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-transparent border border-amber-400/30 text-amber-300 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>EXCLUSIVE VIP LOYALTY CLUB: 5 HAIRCUTS = 1 FREE</span>
+                <span>DAHAB VIP CLUB • 5 HAIRCUTS = 1 FREE</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-extrabold tracking-tight text-white leading-[1.15]">
                 Master Craftsmanship. <br />
-                <span className="gold-gradient-text">Rewarding Loyalty.</span>
+                <span className="gold-gradient-text">Every 5th Cut is on Us.</span>
               </h1>
 
               <p className="text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
-                Experience Cairo’s premier men’s grooming sanctuary. Every haircut stamps your digital loyalty card. Complete 5 visits and enjoy complimentary signature cuts and VIP perks.
+                Experience Cairo’s premier luxury grooming lounge in Heliopolis. No physical cards to carry—simply give your phone number when you visit and enjoy complimentary haircuts and VIP perks.
               </p>
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                 <Link
-                  href="/customer/register"
-                  className="gold-btn w-full sm:w-auto px-8 py-4 rounded-2xl text-sm font-black tracking-wide flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25"
+                  href="/#services"
+                  className="gold-btn w-full sm:w-auto px-8 py-4 rounded-2xl text-sm font-black tracking-wide flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/25 hover:scale-[1.02] transition"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Join Loyalty Program (Free)</span>
-                </Link>
-
-                <Link
-                  href="/customer/login"
-                  className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 text-sm font-bold text-zinc-200 border border-zinc-800 hover:border-amber-500/40 transition flex items-center justify-center gap-2"
-                >
-                  <QrCode className="w-4 h-4 text-amber-400" />
-                  <span>Check My Stamps & QR</span>
+                  <span>Explore Services & Menu</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
@@ -82,51 +74,79 @@ export default function LandingPage() {
               <div className="pt-6 border-t border-zinc-800/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-zinc-400">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Instant Phone Number Login</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
                   <span>No Physical Cards Needed</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Continuous Multi-Cycle Rewards</span>
+                  <span>Instant Phone Lookup</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                  <span>Free Cut Every 5 Visits</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Interactive Stamp Card Preview */}
+            {/* Right Clean VIP Card Showcase */}
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto max-w-md">
-                <div className="text-center mb-3 flex items-center justify-between px-2">
-                  <span className="text-xs uppercase font-bold tracking-wider text-amber-400 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Interactive Member Pass
-                  </span>
-                  <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                    <span>Try Stamp:</span>
-                    <button
-                      onClick={() => setDemoStamps((s) => (s < 5 ? s + 1 : 1))}
-                      className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-mono font-bold text-xs"
-                    >
-                      +{demoStamps === 5 ? 'Reset' : '1 Visit'}
-                    </button>
+                <div className="rounded-3xl bg-gradient-to-b from-[#16161c] to-[#0f0f13] border border-amber-500/30 p-6 sm:p-7 shadow-2xl shadow-black/80 relative overflow-hidden">
+                  {/* Subtle card glow */}
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center border border-amber-400/30">
+                        <Scissors className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-serif font-bold text-white block">DAHAB VIP CLUB</span>
+                        <span className="text-[10px] text-amber-400/90 font-medium">Digital Loyalty Pass</span>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider">
+                      5 Cuts = 1 Free
+                    </span>
+                  </div>
+
+                  {/* Visual 5-Stamp Progression */}
+                  <div className="py-6">
+                    <div className="flex items-center justify-between mb-3 text-xs">
+                      <span className="text-zinc-400 font-medium">Your Stamp Progress:</span>
+                      <span className="text-amber-400 font-bold font-mono">5 Visits Cycle</span>
+                    </div>
+
+                    <div className="grid grid-cols-5 gap-2">
+                      {[1, 2, 3, 4].map((num) => (
+                        <div
+                          key={num}
+                          className="aspect-square rounded-2xl bg-zinc-900/90 border border-amber-500/20 flex flex-col items-center justify-center p-1 text-center group hover:border-amber-400/50 transition"
+                        >
+                          <Scissors className="w-4 h-4 text-amber-400 mb-1" />
+                          <span className="text-[10px] font-bold text-zinc-300">#{num}</span>
+                        </div>
+                      ))}
+
+                      {/* 5th Free Reward Stamp */}
+                      <div className="aspect-square rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center p-1 text-center shadow-lg shadow-amber-500/20 animate-pulse">
+                        <Gift className="w-4 h-4 text-zinc-950 mb-1" />
+                        <span className="text-[9px] font-black text-zinc-950 uppercase leading-none">FREE!</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reward Description */}
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-400 text-zinc-950 flex items-center justify-center shrink-0">
+                      <Gift className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-amber-300 block">Complimentary Signature Haircut</span>
+                      <span className="text-[11px] text-zinc-400 block">Automatically unlocks on your 5th visit</span>
+                    </div>
                   </div>
                 </div>
-
-                <StampPunchCard
-                  currentVisits={demoStamps}
-                  targetVisits={5}
-                  currentCycle={1}
-                  rewardTitle="Free Signature Haircut"
-                  customerName="Mohamed Mostafa"
-                  tier="GOLD"
-                  hasUnclaimedReward={demoStamps >= 5}
-                />
-
-                <p className="text-[11px] text-zinc-500 text-center mt-3">
-                  Click "+1 Visit" above to test the 5/5 instant reward trigger.
-                </p>
               </div>
             </div>
           </div>
@@ -347,19 +367,13 @@ export default function LandingPage() {
             <p className="text-xs sm:text-sm text-zinc-300">
               Register now with your phone number and receive your digital VIP pass immediately.
             </p>
-            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="pt-3 flex items-center justify-center">
               <Link
-                href="/customer/register"
+                href="/#services"
                 className="gold-btn px-8 py-3.5 rounded-xl text-sm font-black tracking-wide flex items-center justify-center gap-2 shadow-lg"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Create Free Loyalty Profile</span>
-              </Link>
-              <Link
-                href="/customer/login"
-                className="px-6 py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-sm font-bold text-zinc-200 border border-zinc-800"
-              >
-                <span>Existing Customer Sign In</span>
+                <span>Explore Services & Pricing</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
