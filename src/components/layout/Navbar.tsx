@@ -2,10 +2,24 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Scissors, Sparkles, User, ShieldCheck, Menu, X, QrCode } from 'lucide-react';
+import { Scissors, Sparkles, User, Menu, X, Video } from 'lucide-react';
+
+function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
+  );
+}
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const instagramUrl = 'https://www.instagram.com/dahabbarbershop';
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#09090b]/90 backdrop-blur-md border-b border-amber-500/20">
@@ -26,13 +40,17 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-300">
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-300">
           <Link href="/#services" className="hover:text-amber-300 transition">
             Services & Pricing
           </Link>
           <Link href="/#loyalty" className="hover:text-amber-300 transition flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             Loyalty Rewards (5=1 Free)
+          </Link>
+          <Link href="/#lounge-experience" className="hover:text-amber-300 transition flex items-center gap-1.5">
+            <Video className="w-3.5 h-3.5 text-amber-400" />
+            Lounge Film
           </Link>
           <Link href="/#barbers" className="hover:text-amber-300 transition">
             Master Barbers
@@ -41,6 +59,16 @@ export default function Navbar() {
 
         {/* Action Buttons */}
         <div className="hidden sm:flex items-center gap-3">
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-pink-400 hover:text-white hover:border-pink-500/50 hover:bg-pink-600/10 transition"
+            title="Follow on Instagram @dahabbarbershop"
+          >
+            <InstagramIcon className="w-4 h-4" />
+          </a>
+
           <Link
             href="/customer/login"
             className="gold-btn px-5 py-2.5 rounded-xl text-xs font-black tracking-wide flex items-center gap-1.5 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition"
@@ -79,6 +107,14 @@ export default function Navbar() {
               Loyalty Rewards (5=1 Free)
             </Link>
             <Link
+              href="/#lounge-experience"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 text-zinc-300 hover:text-amber-400 flex items-center gap-2"
+            >
+              <Video className="w-4 h-4 text-amber-400" />
+              Lounge Film & Experience
+            </Link>
+            <Link
               href="/#barbers"
               onClick={() => setMobileMenuOpen(false)}
               className="py-2 text-zinc-300 hover:text-amber-400"
@@ -88,6 +124,16 @@ export default function Navbar() {
           </div>
 
           <div className="pt-4 border-t border-zinc-800 flex flex-col gap-2.5">
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 rounded-xl bg-zinc-900 text-center text-sm font-bold border border-pink-500/30 text-pink-400 flex items-center justify-center gap-2"
+            >
+              <InstagramIcon className="w-4 h-4" />
+              <span>Instagram @dahabbarbershop</span>
+            </a>
+
             <Link
               href="/customer/login"
               onClick={() => setMobileMenuOpen(false)}
