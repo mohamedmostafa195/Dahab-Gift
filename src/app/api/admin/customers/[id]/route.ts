@@ -88,3 +88,25 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> | { id: string } }
+) {
+  try {
+    const resolvedParams = await Promise.resolve(context.params);
+    const { id } = resolvedParams;
+
+    const deleted = db.deleteCustomer(id);
+    if (!deleted) {
+      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Customer deleted successfully' });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to delete customer' },
+      { status: 500 }
+    );
+  }
+}

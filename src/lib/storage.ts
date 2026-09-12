@@ -170,6 +170,29 @@ export const db = {
     saveDb(data);
     return data.customers[idx];
   },
+  deleteCustomer(id: string): boolean {
+    const data = ensureDbFile();
+    const idx = data.customers.findIndex((c) => c.id === id);
+    if (idx === -1) return false;
+    const customer = data.customers[idx];
+
+    // Remove customer record
+    data.customers.splice(idx, 1);
+
+    // Remove associated user (if role is CUSTOMER)
+    if (customer.userId) {
+      data.users = data.users.filter((u) => u.id !== customer.userId || u.role === 'ADMIN');
+    } else if (customer.phoneNumber) {
+      data.users = data.users.filter((u) => u.phoneNumber !== customer.phoneNumber || u.role === 'ADMIN');
+    }
+
+    // Remove customer visits & rewards
+    data.visits = data.visits.filter((v) => v.customerId !== id);
+    data.rewards = data.rewards.filter((r) => r.customerId !== id);
+
+    saveDb(data);
+    return true;
+  },
 
   // VISITS
   getVisits(): Visit[] {

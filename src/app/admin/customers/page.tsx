@@ -180,6 +180,25 @@ export default function AdminCustomersPage() {
     }
   };
 
+  const handleDeleteCustomer = async (customerId: string, customerName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete customer "${customerName}" and all their records?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/customers/${customerId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete customer');
+      }
+      if (selectedCustomer?.id === customerId) {
+        setSelectedCustomer(null);
+      }
+      fetchCustomers();
+    } catch (err: any) {
+      alert(err.message || 'Error deleting customer');
+    }
+  };
+
   const targetVisits = rule?.targetVisits || 5;
 
   const filtered = customers.filter(
@@ -330,16 +349,25 @@ export default function AdminCustomersPage() {
 
                       {/* Quick Actions */}
                       <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => {
                               setCustomerForVisit(c);
                               setQuickVisitModalOpen(true);
                             }}
                             className="gold-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm"
+                            title="Add Haircut Visit"
                           >
                             <Plus className="w-3.5 h-3.5" />
-                            +1 Visit
+                            <span>+1 Visit</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteCustomer(c.id, c.fullName)}
+                            className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 hover:text-rose-300 border border-rose-500/20 hover:border-rose-500/40 transition"
+                            title="Delete Customer Profile"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -432,6 +460,15 @@ export default function AdminCustomersPage() {
                 >
                   <Plus className="w-4 h-4" />
                   <span>+1 Add Haircut Visit</span>
+                </button>
+
+                <button
+                  onClick={() => handleDeleteCustomer(selectedCustomer.id, selectedCustomer.fullName)}
+                  className="px-4 py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                  title="Delete Customer Profile"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
                 </button>
               </div>
 
