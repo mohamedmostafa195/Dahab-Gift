@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import QuickVisitModal from '@/components/admin/QuickVisitModal';
 import CelebrationModal from '@/components/admin/CelebrationModal';
+import CameraQRScanner from '@/components/admin/CameraQRScanner';
 import VisitTimeline from '@/components/customer/VisitTimeline';
 import RewardCard from '@/components/customer/RewardCard';
 import {
@@ -46,6 +47,7 @@ export default function AdminCustomersPage() {
 
   // Modals
   const [newCustomerModalOpen, setNewCustomerModalOpen] = useState(false);
+  const [scannerModalOpen, setScannerModalOpen] = useState(false);
   const [newFullName, setNewFullName] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -212,6 +214,21 @@ export default function AdminCustomersPage() {
       c.memberCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleCustomerFoundFromScan = async (identifier: string) => {
+    setScannerModalOpen(false);
+    try {
+      const res = await fetch(`/api/admin/customers/${encodeURIComponent(identifier)}`);
+      const data = await res.json();
+      if (res.ok && data.customer) {
+        openCustomerDetail(data.customer);
+      } else {
+        alert(data.error || 'Customer not found with this QR code');
+      }
+    } catch (e: any) {
+      alert(e.message || 'Customer lookup error');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <AdminHeader
@@ -219,6 +236,7 @@ export default function AdminCustomersPage() {
         subtitle="Manage member profiles, visits count, rewards, and histories"
         onSearch={(q) => setSearchQuery(q)}
         onAddNewCustomer={() => setNewCustomerModalOpen(true)}
+        onOpenScanner={() => setScannerModalOpen(true)}
       />
 
       <main className="p-4 sm:p-8 space-y-6 max-w-7xl w-full">
@@ -672,6 +690,18 @@ export default function AdminCustomersPage() {
         customer={celebrationData.customer}
         onClose={() => setCelebrationData({ isOpen: false })}
       />
+
+      {/* QR Camera Scanner Modal */}
+      {scannerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in-0 duration-200">
+          <div className="w-full max-w-lg">
+            <CameraQRScanner
+              onCustomerFound={handleCustomerFoundFromScan}
+              onClose={() => setScannerModalOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

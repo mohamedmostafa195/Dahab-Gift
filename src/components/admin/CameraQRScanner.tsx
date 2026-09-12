@@ -115,19 +115,12 @@ export default function CameraQRScanner({
         throw new Error('Scanner container element not found');
       }
 
-      // Support comprehensive barcode and QR formats
+      // Support QR codes and common barcodes with maximum performance
       const formatsToSupport = [
         Html5QrcodeSupportedFormats.QR_CODE,
         Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.CODE_93,
-        Html5QrcodeSupportedFormats.CODABAR,
         Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
         Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.ITF,
-        Html5QrcodeSupportedFormats.DATA_MATRIX,
       ];
 
       const html5QrCode = new Html5Qrcode('reader-container', {
@@ -152,16 +145,9 @@ export default function CameraQRScanner({
         console.warn('Could not enumerate cameras:', camErr);
       }
 
-      // Responsive scanning box with wide coverage for both QR and 1D barcodes
-      const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
-        const width = Math.max(220, Math.floor(viewfinderWidth * 0.82));
-        const height = Math.max(180, Math.floor(viewfinderHeight * 0.75));
-        return { width, height };
-      };
-
+      // Full-frame scanning without bounding-box cropping allows instant detection anywhere in view
       const qrConfig = {
-        fps: 20,
-        qrbox: qrboxFunction,
+        fps: 12,
         aspectRatio: 1.0,
         disableFlip: false,
         videoConstraints: {

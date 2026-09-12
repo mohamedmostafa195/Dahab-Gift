@@ -8,9 +8,33 @@
       "role": "ADMIN",
       "passwordHash": "admin123",
       "createdAt": "2026-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "user-1789227997623-128",
+      "phoneNumber": "01122575700",
+      "fullName": "Abdelazem Hesham",
+      "email": "AbdelazemHesham@gmail.com",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-09-12T15:46:37.623Z"
     }
   ],
-  "customers": [],
+  "customers": [
+    {
+      "id": "cust-1789227997625-497",
+      "userId": "user-1789227997623-128",
+      "fullName": "Abdelazem Hesham",
+      "phoneNumber": "01122575700",
+      "email": "AbdelazemHesham@gmail.com",
+      "memberCode": "DHB-1815",
+      "currentCycle": 1,
+      "currentVisits": 0,
+      "lifetimeVisits": 0,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-12T15:46:37.623Z",
+      "updatedAt": "2026-09-12T15:46:37.623Z"
+    }
+  ],
   "visits": [],
   "rewards": [],
   "loyaltyRule": {
