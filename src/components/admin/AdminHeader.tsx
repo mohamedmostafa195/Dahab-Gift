@@ -124,28 +124,6 @@ export default function AdminHeader({
             </Link>
           )}
 
-          {/* Add New Customer */}
-          {onAddNewCustomer && (
-            <button
-              onClick={onAddNewCustomer}
-              className="gold-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold tracking-wide shadow-md"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Customer</span>
-            </button>
-          )}
-
-          {/* Reset Demo Data Button */}
-          <button
-            onClick={handleResetData}
-            disabled={resetting}
-            title="Reset to Sample Demo Data"
-            className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 text-zinc-400 hover:text-amber-300 transition text-xs flex items-center gap-1"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
-            <span className="hidden xl:inline">Reset Demo</span>
-          </button>
-
           {/* Prominent Sign Out / Logout Button */}
           <button
             onClick={handleLogoutClick}
