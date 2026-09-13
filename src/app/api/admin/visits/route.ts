@@ -74,6 +74,8 @@ export async function POST(req: NextRequest) {
       notes,
     });
 
+    await db.syncToCloud();
+
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
@@ -97,6 +99,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const result = removeCustomerVisit(visitId);
+    await db.syncToCloud();
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(

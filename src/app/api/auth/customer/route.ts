@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
         password: password.trim(),
       });
 
+      await db.syncToCloud();
+
       return NextResponse.json({ ...res, role: 'CUSTOMER' }, { status: 201 });
     } else if (action === 'login' || !action) {
       const loginId = (identifier || phoneNumber || '').trim();

@@ -5,6 +5,7 @@ export async function POST() {
   try {
     await db.syncFromCloud();
     const data = db.resetToDefaults();
+    await db.syncToCloud();
     return NextResponse.json({
       success: true,
       message: 'System reset to initial sample demo data with success.',

@@ -132,6 +132,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }
 
+    await db.syncToCloud();
+
     return NextResponse.json({ success: true, customer: updated });
   } catch (error: any) {
     return NextResponse.json(
@@ -154,6 +156,8 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }
+
+    await db.syncToCloud();
 
     return NextResponse.json({ success: true, message: 'Customer deleted successfully' });
   } catch (error: any) {

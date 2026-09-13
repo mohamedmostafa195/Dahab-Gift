@@ -84,6 +84,8 @@ export async function POST(req: NextRequest) {
       res.customer.notes = notes;
     }
 
+    await db.syncToCloud();
+
     return NextResponse.json(res, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
@@ -107,6 +109,8 @@ export async function DELETE(req: NextRequest) {
     if (!deleted) {
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }
+
+    await db.syncToCloud();
 
     return NextResponse.json({ success: true, message: 'Customer deleted successfully' });
   } catch (error: any) {

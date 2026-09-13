@@ -30,6 +30,8 @@ export async function POST(req: NextRequest) {
       phonePrefix: phonePrefix?.trim(),
     });
 
+    await db.syncToCloud();
+
     return NextResponse.json({ success: true, rule: updated });
   } catch (error: any) {
     return NextResponse.json(

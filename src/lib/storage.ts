@@ -46,15 +46,31 @@ async function syncToCloud(data: DatabaseSchema): Promise<void> {
   if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return;
   try {
     const url = KV_REST_API_URL.replace(/\/+$/, '');
-    await fetch(`${url}/set/${STORAGE_KEY}`, {
+    const payload = JSON.stringify(data);
+    
+    // 1. Try standard Upstash command payload: ["SET", key, payload]
+    const cmdRes = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${KV_REST_API_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(['SET', STORAGE_KEY, payload]),
       cache: 'no-store',
     });
+
+    if (!cmdRes.ok) {
+      // 2. Fallback to /set/key endpoint
+      await fetch(`${url}/set/${STORAGE_KEY}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: payload,
+        cache: 'no-store',
+      });
+    }
   } catch (err) {
     console.error('Failed to sync DB to Cloud KV:', err);
   }
@@ -68,13 +84,28 @@ async function syncFromCloud(): Promise<DatabaseSchema> {
 
   try {
     const url = KV_REST_API_URL.replace(/\/+$/, '');
-    const res = await fetch(`${url}/get/${STORAGE_KEY}`, {
-      method: 'GET',
+    
+    // 1. Try standard Upstash command: ["GET", key]
+    let res = await fetch(url, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(['GET', STORAGE_KEY]),
       cache: 'no-store',
     });
+
+    if (!res.ok) {
+      // 2. Fallback to /get/key
+      res = await fetch(`${url}/get/${STORAGE_KEY}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+        },
+        cache: 'no-store',
+      });
+    }
 
     if (res.ok) {
       const json = await res.json();

@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = redeemCustomerReward(rewardIdOrCode, redeemedBy || 'Admin');
+    await db.syncToCloud();
     return NextResponse.json(result, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
