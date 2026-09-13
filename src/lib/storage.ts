@@ -31,73 +31,153 @@ interface DatabaseSchema {
   services: ServiceItem[];
 }
 
-// Cloud KV / Upstash Redis REST configuration (if configured in Vercel)
-const KV_REST_API_URL =
-  process.env.STORAGE_REST_API_URL ||
-  process.env.STORAGE_KV_REST_API_URL ||
-  process.env.STORAGE_URL ||
-  process.env.KV_REST_API_URL ||
-  process.env.UPSTASH_REDIS_REST_URL ||
-  process.env.KV_URL;
+function getKvUrl(): string | undefined {
+  return (
+    process.env.STORAGE_REST_API_URL ||
+    process.env.STORAGE_KV_REST_API_URL ||
+    process.env.STORAGE_URL ||
+    process.env.KV_REST_API_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.VERCEL_KV_REST_API_URL ||
+    process.env.KV_URL
+  );
+}
 
-const KV_REST_API_TOKEN =
-  process.env.STORAGE_REST_API_TOKEN ||
-  process.env.STORAGE_KV_REST_API_TOKEN ||
-  process.env.STORAGE_REST_API_READ_ONLY_TOKEN ||
-  process.env.KV_REST_API_TOKEN ||
-  process.env.UPSTASH_REDIS_REST_TOKEN ||
-  process.env.KV_REST_API_READ_ONLY_TOKEN;
+function getKvToken(): string | undefined {
+  return (
+    process.env.STORAGE_REST_API_TOKEN ||
+    process.env.STORAGE_KV_REST_API_TOKEN ||
+    process.env.STORAGE_REST_API_READ_ONLY_TOKEN ||
+    process.env.KV_REST_API_TOKEN ||
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.VERCEL_KV_REST_API_TOKEN ||
+    process.env.KV_REST_API_READ_ONLY_TOKEN
+  );
+}
 
 const STORAGE_KEY = 'dahab_barbershop_db_v1';
 
-async function syncToCloud(data: DatabaseSchema): Promise<void> {
-  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return;
+function mergeDatabases(cloud: DatabaseSchema, local: DatabaseSchema): DatabaseSchema {
+  const merged: DatabaseSchema = {
+    users: [...(cloud.users || [])],
+    customers: [...(cloud.customers || [])],
+    visits: [...(cloud.visits || [])],
+    rewards: [...(cloud.rewards || [])],
+    loyaltyRule: cloud.loyaltyRule || local.loyaltyRule,
+    barbers: cloud.barbers?.length ? cloud.barbers : local.barbers,
+    services: cloud.services?.length ? cloud.services : local.services,
+  };
+
+  // Merge users (dedupe by ID & phone)
+  const userMap = new Map<string, User>();
+  merged.users.forEach((u) => userMap.set(u.id, u));
+  (local.users || []).forEach((u) => {
+    if (!userMap.has(u.id)) {
+      const existing = Array.from(userMap.values()).find((x) => x.phoneNumber === u.phoneNumber);
+      if (!existing) userMap.set(u.id, u);
+    }
+  });
+  merged.users = Array.from(userMap.values());
+
+  // Merge customers (dedupe by ID, phone, and member code)
+  const custMap = new Map<string, Customer>();
+  merged.customers.forEach((c) => custMap.set(c.id, c));
+  (local.customers || []).forEach((c) => {
+    if (!custMap.has(c.id)) {
+      const existing = Array.from(custMap.values()).find(
+        (x) =>
+          x.phoneNumber === c.phoneNumber ||
+          (x.memberCode && c.memberCode && x.memberCode.toUpperCase() === c.memberCode.toUpperCase())
+      );
+      if (!existing) {
+        custMap.set(c.id, c);
+      }
+    }
+  });
+  merged.customers = Array.from(custMap.values());
+
+  // Merge visits (dedupe by ID)
+  const visitMap = new Map<string, Visit>();
+  merged.visits.forEach((v) => visitMap.set(v.id, v));
+  (local.visits || []).forEach((v) => {
+    if (!visitMap.has(v.id)) visitMap.set(v.id, v);
+  });
+  merged.visits = Array.from(visitMap.values());
+
+  // Merge rewards (dedupe by ID & voucherCode)
+  const rewardMap = new Map<string, Reward>();
+  merged.rewards.forEach((r) => rewardMap.set(r.id, r));
+  (local.rewards || []).forEach((r) => {
+    if (!rewardMap.has(r.id)) {
+      const existing = Array.from(rewardMap.values()).find(
+        (x) => x.voucherCode && r.voucherCode && x.voucherCode.toUpperCase() === r.voucherCode.toUpperCase()
+      );
+      if (!existing) rewardMap.set(r.id, r);
+    }
+  });
+  merged.rewards = Array.from(rewardMap.values());
+
+  return merged;
+}
+
+async function syncToCloud(data: DatabaseSchema): Promise<boolean> {
+  const url = getKvUrl();
+  const token = getKvToken();
+  if (!url || !token) return false;
+
   try {
-    const url = KV_REST_API_URL.replace(/\/+$/, '');
+    const cleanUrl = url.replace(/\/+$/, '');
     const payload = JSON.stringify(data);
-    
-    // 1. Try standard Upstash command payload: ["SET", key, payload]
-    const cmdRes = await fetch(url, {
+
+    // 1. Try standard Upstash REST command payload: ["SET", key, payload]
+    const cmdRes = await fetch(cleanUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(['SET', STORAGE_KEY, payload]),
       cache: 'no-store',
     });
 
-    if (!cmdRes.ok) {
-      // 2. Fallback to /set/key endpoint
-      await fetch(`${url}/set/${STORAGE_KEY}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${KV_REST_API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: payload,
-        cache: 'no-store',
-      });
+    if (cmdRes.ok) {
+      return true;
     }
+
+    // 2. Fallback to /set/key endpoint
+    const postRes = await fetch(`${cleanUrl}/set/${encodeURIComponent(STORAGE_KEY)}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+    });
+
+    return postRes.ok;
   } catch (err) {
     console.error('Failed to sync DB to Cloud KV:', err);
+    return false;
   }
 }
 
 async function syncFromCloud(): Promise<DatabaseSchema> {
   const local = ensureDbFile();
-  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) {
+  const url = getKvUrl();
+  const token = getKvToken();
+  if (!url || !token) {
     return local;
   }
 
   try {
-    const url = KV_REST_API_URL.replace(/\/+$/, '');
-    
+    const cleanUrl = url.replace(/\/+$/, '');
+
     // 1. Try standard Upstash command: ["GET", key]
-    let res = await fetch(url, {
+    let res = await fetch(cleanUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(['GET', STORAGE_KEY]),
@@ -106,10 +186,10 @@ async function syncFromCloud(): Promise<DatabaseSchema> {
 
     if (!res.ok) {
       // 2. Fallback to /get/key
-      res = await fetch(`${url}/get/${STORAGE_KEY}`, {
+      res = await fetch(`${cleanUrl}/get/${encodeURIComponent(STORAGE_KEY)}`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+          Authorization: `Bearer ${token}`,
         },
         cache: 'no-store',
       });
@@ -124,15 +204,16 @@ async function syncFromCloud(): Promise<DatabaseSchema> {
         } catch (e) {}
       }
 
-      if (result && Array.isArray(result.customers)) {
-        memoryDb = result as DatabaseSchema;
+      if (result && typeof result === 'object' && Array.isArray(result.customers)) {
+        const merged = mergeDatabases(result as DatabaseSchema, local);
+        memoryDb = merged;
         try {
           if (!fs.existsSync(DB_DIR)) {
             fs.mkdirSync(DB_DIR, { recursive: true });
           }
-          fs.writeFileSync(DB_FILE, JSON.stringify(result, null, 2), 'utf-8');
+          fs.writeFileSync(DB_FILE, JSON.stringify(merged, null, 2), 'utf-8');
         } catch (e) {}
-        return memoryDb;
+        return merged;
       }
     }
   } catch (err) {
@@ -201,19 +282,55 @@ function saveDb(data: DatabaseSchema): void {
   }
 
   // Fire-and-forget sync to Cloud KV if available
-  if (KV_REST_API_URL && KV_REST_API_TOKEN) {
-    syncToCloud(data);
+  const kvUrl = getKvUrl();
+  const kvToken = getKvToken();
+  if (kvUrl && kvToken) {
+    syncToCloud(data).catch((err) => console.error('Background cloud sync error:', err));
   }
 }
 
 export const db = {
-  // CLOUD SYNC
+  // CLOUD STATUS & SYNC
+  isCloudConfigured(): boolean {
+    return Boolean(getKvUrl() && getKvToken());
+  },
+  getCloudStatus(): { configured: boolean; provider: string; urlPrefix: string } {
+    const url = getKvUrl();
+    const token = getKvToken();
+    const configured = Boolean(url && token);
+    let provider = 'Local File / Memory (Ephemeral in Serverless)';
+    let urlPrefix = 'Not Connected';
+    if (configured && url) {
+      if (url.includes('upstash')) provider = 'Upstash Redis';
+      else if (url.includes('vercel')) provider = 'Vercel KV';
+      else provider = 'Cloud KV REST';
+      try {
+        const u = new URL(url);
+        urlPrefix = `${u.protocol}//${u.hostname}`;
+      } catch (e) {
+        urlPrefix = url.slice(0, 20) + '...';
+      }
+    }
+    return { configured, provider, urlPrefix };
+  },
   async syncFromCloud(): Promise<DatabaseSchema> {
     return syncFromCloud();
   },
-  async syncToCloud(data?: DatabaseSchema): Promise<void> {
+  async syncToCloud(data?: DatabaseSchema): Promise<boolean> {
     const d = data || ensureDbFile();
     return syncToCloud(d);
+  },
+
+  // DATABASE IMPORT / EXPORT
+  getDatabase(): DatabaseSchema {
+    return ensureDbFile();
+  },
+  async importDatabase(incoming: Partial<DatabaseSchema>): Promise<DatabaseSchema> {
+    const current = ensureDbFile();
+    const merged = mergeDatabases(incoming as DatabaseSchema, current);
+    saveDb(merged);
+    await syncToCloud(merged);
+    return merged;
   },
 
   // RESET

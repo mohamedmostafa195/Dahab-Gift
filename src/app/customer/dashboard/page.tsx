@@ -44,18 +44,47 @@ export default function CustomerDashboardPage() {
     try {
       const phone = localStorage.getItem('dahab_customer_phone');
       const customerId = localStorage.getItem('dahab_customer_id');
+      const cachedDataRaw = localStorage.getItem('dahab_customer_data');
 
-      if (!phone && !customerId) {
+      if (!phone && !customerId && !cachedDataRaw) {
         router.push('/customer/login');
         return;
       }
 
-      const queryParam = phone
-        ? `phone=${encodeURIComponent(phone)}`
-        : `customerId=${encodeURIComponent(customerId!)}`;
+      let cachedCustomer: Customer | null = null;
+      if (cachedDataRaw) {
+        try {
+          cachedCustomer = JSON.parse(cachedDataRaw);
+        } catch (e) {}
+      }
 
-      const res = await fetch(`/api/customer/me?${queryParam}`);
-      const data = await res.json();
+      const lookupPhone = phone || cachedCustomer?.phoneNumber;
+      const lookupId = customerId || cachedCustomer?.id;
+
+      const queryParam = lookupPhone
+        ? `phone=${encodeURIComponent(lookupPhone)}`
+        : `customerId=${encodeURIComponent(lookupId!)}`;
+
+      let res = await fetch(`/api/customer/me?${queryParam}`);
+      let data = await res.json();
+
+      // If server doesn't have customer (e.g. serverless cold start instance without cloud sync),
+      // self-heal and re-provision using client-cached customer record
+      if (!res.ok && cachedCustomer) {
+        try {
+          const syncRes = await fetch('/api/customer/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customer: cachedCustomer }),
+          });
+          if (syncRes.ok) {
+            res = await fetch(`/api/customer/me?${queryParam}`);
+            data = await res.json();
+          }
+        } catch (syncErr) {
+          console.error('Self-healing sync error:', syncErr);
+        }
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to load profile');
@@ -71,6 +100,7 @@ export default function CustomerDashboardPage() {
         localStorage.setItem('dahab_customer_phone', data.customer.phoneNumber);
         localStorage.setItem('dahab_customer_id', data.customer.id);
         localStorage.setItem('dahab_customer_name', data.customer.fullName);
+        localStorage.setItem('dahab_customer_data', JSON.stringify(data.customer));
       }
     } catch (err) {
       console.error('Error fetching customer profile:', err);
@@ -83,6 +113,7 @@ export default function CustomerDashboardPage() {
     localStorage.removeItem('dahab_customer_phone');
     localStorage.removeItem('dahab_customer_id');
     localStorage.removeItem('dahab_customer_name');
+    localStorage.removeItem('dahab_customer_data');
     router.push('/customer/login');
   };
 

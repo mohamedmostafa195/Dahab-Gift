@@ -60,6 +60,7 @@ export default function CustomerRegisterPage() {
       localStorage.setItem('dahab_customer_phone', data.customer.phoneNumber);
       localStorage.setItem('dahab_customer_id', data.customer.id);
       localStorage.setItem('dahab_customer_name', data.customer.fullName);
+      localStorage.setItem('dahab_customer_data', JSON.stringify(data.customer));
 
       router.push('/customer/dashboard');
     } catch (err: any) {

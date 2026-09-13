@@ -76,6 +76,86 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const [cloudInfo, setCloudInfo] = useState<{
+    configured: boolean;
+    provider: string;
+    urlPrefix: string;
+  } | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+    fetchCloudStatus();
+  }, []);
+
+  const fetchCloudStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/status');
+      if (res.ok) {
+        const data = await res.json();
+        setCloudInfo(data.cloud);
+      }
+    } catch (e) {
+      console.error('Error fetching cloud status:', e);
+    }
+  };
+
+  const handleExportBackup = async () => {
+    setExporting(true);
+    try {
+      const res = await fetch('/api/admin/database');
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dahab-barbershop-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert('Failed to export backup: ' + e.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm('Are you sure you want to merge/restore data from this backup file?')) {
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+
+      const res = await fetch('/api/admin/database', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Import failed');
+
+      setSuccessMsg(`Database backup imported successfully! (${data.stats.customers} customers synced)`);
+      fetchSettings();
+      fetchCloudStatus();
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      alert('Error importing backup: ' + err.message);
+    } finally {
+      setImporting(false);
+      e.target.value = '';
+    }
+  };
+
   const presetRewards = [
     { title: 'Free Signature Haircut', desc: 'Complimentary signature haircut with refreshing hot towel finish.' },
     { title: '20% Discount on Next Visit', desc: 'Enjoy 20% off your entire grooming bill on your next appointment.' },
@@ -97,6 +177,72 @@ export default function AdminSettingsPage() {
             <span>{successMsg}</span>
           </div>
         )}
+
+        {/* Section 0: Cloud Storage & Database Persistence Status */}
+        <div className="rounded-3xl bg-[#121216] border border-amber-500/30 p-6 sm:p-8 space-y-6 shadow-2xl">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center border border-amber-400/30">
+                <Store className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2.5">
+                  Cloud Database & Storage Status
+                  {cloudInfo?.configured ? (
+                    <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Active Cloud Sync ({cloudInfo.provider})
+                    </span>
+                  ) : (
+                    <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Local Storage Mode (Setup Upstash on Vercel for 100% cloud sync)
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Ensures all customer accounts and stamp cards persist across Vercel serverless deployments.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                disabled={exporting}
+                className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-amber-400 text-xs font-semibold flex items-center gap-1.5 transition"
+              >
+                {exporting ? 'Exporting...' : 'Export Backup JSON'}
+              </button>
+
+              <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+                {importing ? 'Importing...' : 'Restore / Import JSON'}
+                <input
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={handleImportBackup}
+                  disabled={importing}
+                />
+              </label>
+            </div>
+          </div>
+
+          {!cloudInfo?.configured && (
+            <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2 text-xs text-amber-200/90">
+              <p className="font-bold text-amber-300">
+                💡 How to enable permanent cloud database on Vercel (1-Click Free):
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-zinc-300 pl-1 text-[11px] leading-relaxed">
+                <li>Go to your project on <strong>Vercel Dashboard</strong> &rarr; Click <strong>Storage</strong> tab.</li>
+                <li>Click <strong>Create Database</strong> &rarr; Select <strong>KV (Upstash Redis)</strong> &rarr; Click <strong>Continue</strong>.</li>
+                <li>Connect it to your project. Vercel will automatically inject <code className="text-amber-300">KV_REST_API_URL</code> and <code className="text-amber-300">KV_REST_API_TOKEN</code>.</li>
+                <li>Redeploy or promote production build. Done! All customer accounts & stamps will sync globally in real-time.</li>
+              </ol>
+            </div>
+          )}
+        </div>
 
         <form onSubmit={handleSave} className="space-y-8">
           {/* Section 1: Loyalty Stamp Rule */}
