@@ -9,18 +9,30 @@ export async function POST(req: NextRequest) {
     const { action, fullName, phoneNumber, identifier, password, email } = body;
 
     if (action === 'register') {
-      if (!fullName || !phoneNumber) {
+      if (!fullName?.trim()) {
         return NextResponse.json(
-          { error: 'Full Name and Phone Number are required' },
+          { error: 'الاسم بالكامل مطلوب' },
+          { status: 400 }
+        );
+      }
+      if (!phoneNumber?.trim()) {
+        return NextResponse.json(
+          { error: 'رقم الهاتف مطلوب' },
+          { status: 400 }
+        );
+      }
+      if (!password?.trim()) {
+        return NextResponse.json(
+          { error: 'كلمة المرور مطلوبة' },
           { status: 400 }
         );
       }
 
       const res = registerCustomer({
-        fullName,
-        phoneNumber,
-        email,
-        password,
+        fullName: fullName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        email: email?.trim(),
+        password: password.trim(),
       });
 
       return NextResponse.json({ ...res, role: 'CUSTOMER' }, { status: 201 });
@@ -28,7 +40,13 @@ export async function POST(req: NextRequest) {
       const loginId = (identifier || phoneNumber || '').trim();
       if (!loginId) {
         return NextResponse.json(
-          { error: 'Phone Number or Email is required' },
+          { error: 'رقم الهاتف أو البريد الإلكتروني مطلوب' },
+          { status: 400 }
+        );
+      }
+      if (!password?.trim()) {
+        return NextResponse.json(
+          { error: 'كلمة المرور مطلوبة' },
           { status: 400 }
         );
       }
@@ -52,7 +70,7 @@ export async function POST(req: NextRequest) {
           }, { status: 200 });
         } catch (err: any) {
           return NextResponse.json(
-            { error: err.message || 'Invalid credentials' },
+            { error: err.message || 'بيانات الدخول غير صحيحة' },
             { status: 401 }
           );
         }
@@ -60,7 +78,7 @@ export async function POST(req: NextRequest) {
 
       const res = loginCustomer({
         phoneNumber: loginId,
-        passwordOrPin: password,
+        passwordOrPin: password.trim(),
       });
 
       return NextResponse.json({

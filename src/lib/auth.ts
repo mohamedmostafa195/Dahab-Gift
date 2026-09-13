@@ -17,65 +17,38 @@ export function registerCustomer(params: {
   email?: string;
   password?: string;
 }): { success: boolean; user: User; customer: Customer; message?: string } {
-  const cleanPhone = params.phoneNumber.trim().replace(/\s+/g, '');
+  const cleanPhone = (params.phoneNumber || '').trim().replace(/\s+/g, '');
+  const cleanName = (params.fullName || '').trim();
+  const cleanEmail = (params.email || '').trim().toLowerCase();
+  const cleanPass = (params.password || '').trim();
+
+  if (!cleanName) {
+    throw new Error('الاسم بالكامل مطلوب');
+  }
   if (!cleanPhone) {
-    throw new Error('Phone number is required');
+    throw new Error('رقم الهاتف مطلوب');
+  }
+  if (!cleanPass) {
+    throw new Error('كلمة المرور مطلوبة');
+  }
+  if (cleanPass.length < 4) {
+    throw new Error('كلمة المرور يجب ألا تقل عن 4 خانات');
   }
 
   const existingUser = db.getUserByPhone(cleanPhone);
-  let existingCustomer = db.getCustomerByPhone(cleanPhone);
+  const existingCustomer = db.getCustomerByPhone(cleanPhone);
 
   if (existingUser || existingCustomer) {
-    // If account exists, update details and sign in smoothly
-    const now = new Date().toISOString();
-    let finalUser = existingUser;
-    if (finalUser) {
-      finalUser.fullName = params.fullName?.trim() || finalUser.fullName;
-      if (params.email) finalUser.email = params.email.trim();
-      if (params.password) finalUser.passwordHash = params.password;
-    } else {
-      finalUser = db.createUser({
-        id: `user-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        phoneNumber: cleanPhone,
-        fullName: params.fullName.trim(),
-        email: params.email?.trim(),
-        role: 'CUSTOMER',
-        passwordHash: params.password || '123456',
-        createdAt: now,
-      });
-    }
+    throw new Error('رقم الهاتف مسجل بالفعل! يرجى تسجيل الدخول أو استخدام رقم آخر.');
+  }
 
-    if (existingCustomer) {
-      existingCustomer.fullName = params.fullName?.trim() || existingCustomer.fullName;
-      if (params.email) existingCustomer.email = params.email.trim();
-      db.updateCustomer(existingCustomer.id, {
-        fullName: existingCustomer.fullName,
-        email: existingCustomer.email,
-      });
-    } else {
-      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      existingCustomer = db.createCustomer({
-        id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        userId: finalUser.id,
-        fullName: finalUser.fullName,
-        phoneNumber: cleanPhone,
-        email: finalUser.email,
-        memberCode: `DHB-${randomSuffix}`,
-        currentCycle: 1,
-        currentVisits: 0,
-        lifetimeVisits: 0,
-        tier: calculateTier(0),
-        createdAt: now,
-        updatedAt: now,
-      });
+  if (cleanEmail) {
+    const existingEmailUser = db.getUsers().find(
+      (u) => u.email && u.email.toLowerCase() === cleanEmail
+    );
+    if (existingEmailUser) {
+      throw new Error('البريد الإلكتروني مسجل بالفعل بحساب آخر.');
     }
-
-    return {
-      success: true,
-      user: finalUser,
-      customer: existingCustomer,
-      message: 'Welcome to Dahab VIP Club!',
-    };
   }
 
   const now = new Date().toISOString();
@@ -84,10 +57,10 @@ export function registerCustomer(params: {
   const user: User = {
     id: userId,
     phoneNumber: cleanPhone,
-    fullName: params.fullName.trim(),
-    email: params.email?.trim(),
+    fullName: cleanName,
+    email: cleanEmail,
     role: 'CUSTOMER',
-    passwordHash: params.password || '123456',
+    passwordHash: cleanPass,
     createdAt: now,
   };
   db.createUser(user);
@@ -124,36 +97,32 @@ export function loginCustomer(params: {
   phoneNumber: string;
   passwordOrPin?: string;
 }): { success: boolean; user: User; customer: Customer } {
-  const cleanPhone = params.phoneNumber.trim().replace(/\s+/g, '');
+  const cleanPhone = (params.phoneNumber || '').trim().replace(/\s+/g, '');
   if (!cleanPhone) {
-    throw new Error('Phone number is required');
+    throw new Error('رقم الهاتف أو البريد الإلكتروني مطلوب');
+  }
+
+  const inputPass = (params.passwordOrPin || '').trim();
+  if (!inputPass) {
+    throw new Error('يرجى إدخال كلمة المرور');
   }
 
   let user = db.getUserByPhone(cleanPhone);
-  let customer = db.getCustomerByPhone(cleanPhone);
-
-  if (!user) {
-    // If not found in DB (e.g. serverless instance restart or quick sign in),
-    // automatically provision account so customer is NEVER locked out
-    const now = new Date().toISOString();
-    const userId = `user-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    user = {
-      id: userId,
-      phoneNumber: cleanPhone,
-      fullName: `Member ${cleanPhone.slice(-4)}`,
-      role: 'CUSTOMER',
-      passwordHash: params.passwordOrPin || '123456',
-      createdAt: now,
-    };
-    db.createUser(user);
+  if (!user && cleanPhone.includes('@')) {
+    user = db.getUsers().find((u) => u.email?.toLowerCase() === cleanPhone.toLowerCase());
   }
 
-  if (!customer) {
+  let customer = user ? db.getCustomerByUserId(user.id) : db.getCustomerByPhone(cleanPhone);
+
+  if (!user && !customer) {
+    throw new Error('رقم الهاتف أو البريد الإلكتروني غير مسجل. يرجى إنشاء حساب جديد أولاً.');
+  }
+
+  if (user && !customer) {
     customer = db.getCustomerByUserId(user.id);
   }
 
-  if (!customer) {
-    // Auto-create customer profile if missing
+  if (!customer && user) {
     const memberCode = `DHB-${Math.floor(1000 + Math.random() * 9000)}`;
     customer = db.createCustomer({
       id: `cust-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -171,10 +140,28 @@ export function loginCustomer(params: {
     });
   }
 
+  if (!user && customer) {
+    user = {
+      id: customer.userId || `user-${Date.now()}`,
+      phoneNumber: customer.phoneNumber,
+      fullName: customer.fullName,
+      role: 'CUSTOMER',
+      passwordHash: '123456',
+      createdAt: customer.createdAt,
+    };
+  }
+
+  // Password verification
+  if (user && user.passwordHash) {
+    if (user.passwordHash !== inputPass) {
+      throw new Error('كلمة المرور غير صحيحة');
+    }
+  }
+
   return {
     success: true,
-    user,
-    customer,
+    user: user!,
+    customer: customer!,
   };
 }
 

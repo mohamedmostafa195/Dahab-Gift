@@ -15,8 +15,30 @@ export default function CustomerRegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    const cleanName = fullName.trim();
+    const cleanPhone = phoneNumber.trim();
+    const cleanPass = password.trim();
+
+    if (!cleanName) {
+      setError('يرجى إدخال الاسم بالكامل');
+      return;
+    }
+    if (!cleanPhone) {
+      setError('يرجى إدخال رقم الموبايل');
+      return;
+    }
+    if (!cleanPass) {
+      setError('يرجى إدخال كلمة المرور (كلمة المرور إلزامية)');
+      return;
+    }
+    if (cleanPass.length < 4) {
+      setError('كلمة المرور يجب ألا تقل عن 4 خانات');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch('/api/auth/customer', {
@@ -24,9 +46,9 @@ export default function CustomerRegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'register',
-          fullName,
-          phoneNumber,
-          password: password || '123456',
+          fullName: cleanName,
+          phoneNumber: cleanPhone,
+          password: cleanPass,
         }),
       });
 
@@ -116,19 +138,19 @@ export default function CustomerRegisterPage() {
               </p>
             </div>
 
-
             {/* Password */}
             <div>
               <label className="block text-xs uppercase tracking-wider text-zinc-300 font-semibold mb-1.5">
-                Create Password / PIN
+                Create Password / PIN *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <input
                   type="password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Leave blank for default (123456)"
+                  placeholder="Minimum 4 characters"
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400 font-mono"
                 />
               </div>

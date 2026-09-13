@@ -207,8 +207,21 @@ export const db = {
     return ensureDbFile().users;
   },
   getUserByPhone(phone: string): User | undefined {
-    const clean = phone.trim().replace(/\s+/g, '');
-    return ensureDbFile().users.find((u) => u.phoneNumber.replace(/\s+/g, '') === clean);
+    if (!phone) return undefined;
+    const clean = phone.trim().replace(/[\s\-\+]/g, '');
+    const cleanNoCountry = clean.replace(/^(?:20|0020|\+20)/, '');
+    const norm = cleanNoCountry.startsWith('0') ? cleanNoCountry : '0' + cleanNoCountry;
+    return ensureDbFile().users.find((u) => {
+      const uClean = u.phoneNumber.replace(/[\s\-\+]/g, '');
+      const uNoCountry = uClean.replace(/^(?:20|0020|\+20)/, '');
+      const uNorm = uNoCountry.startsWith('0') ? uNoCountry : '0' + uNoCountry;
+      return (
+        uClean === clean ||
+        uNorm === norm ||
+        (norm.length >= 9 && uNorm.endsWith(norm)) ||
+        (uNorm.length >= 9 && norm.endsWith(uNorm))
+      );
+    });
   },
   getUserById(id: string): User | undefined {
     return ensureDbFile().users.find((u) => u.id === id);
