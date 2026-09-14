@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Reward } from '@/types';
 import { Gift, Check, Copy, Sparkles, Clock, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 interface RewardCardProps {
   reward: Reward;
@@ -12,6 +14,8 @@ interface RewardCardProps {
 
 export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: RewardCardProps) {
   const [copied, setCopied] = useState(false);
+  const { language, isArabic } = useLanguage();
+  const t = getTranslations(language).customer;
   const isAvailable = reward.status === 'AVAILABLE';
 
   const handleCopy = () => {
@@ -22,7 +26,7 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString('en-US', {
+      return new Date(iso).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -31,6 +35,9 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
       return iso;
     }
   };
+
+  const displayTitle =
+    reward.title === 'Free Signature Haircut' ? t.defaultRewardTitle : reward.title;
 
   return (
     <div
@@ -51,9 +58,11 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
                   : 'bg-zinc-800 text-zinc-400'
               }`}
             >
-              {isAvailable ? '★ Ready to Claim' : 'Redeemed'}
+              {isAvailable ? t.readyToClaim : t.redeemed}
             </span>
-            <span className="text-xs text-zinc-400">Cycle #{reward.cycleNumber}</span>
+            <span className="text-xs text-zinc-400">
+              {t.cycle} #{reward.cycleNumber}
+            </span>
           </div>
 
           <span className="text-xs text-zinc-400 flex items-center gap-1">
@@ -75,7 +84,7 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
           </div>
           <div>
             <h4 className="text-base sm:text-lg font-serif font-bold text-white leading-tight">
-              {reward.title}
+              {displayTitle}
             </h4>
             <p className="text-xs text-zinc-300 mt-1 line-clamp-2">
               {reward.description}
@@ -87,7 +96,7 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
         <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-3">
           <div>
             <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
-              Voucher Code
+              {t.voucherCode}
             </span>
             <span className="font-mono text-sm sm:text-base font-bold text-amber-300 tracking-wider">
               {reward.voucherCode}
@@ -103,12 +112,12 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400 text-[11px]">Copied</span>
+                  <span className="text-emerald-400 text-[11px]">{t.copied}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5 text-zinc-400" />
-                  <span className="text-[11px] hidden sm:inline">Copy</span>
+                  <span className="text-[11px] hidden sm:inline">{t.copy}</span>
                 </>
               )}
             </button>
@@ -128,8 +137,8 @@ export default function RewardCard({ reward, onRedeemClick, isAdmin = false }: R
         {/* Redeemed Info */}
         {!isAvailable && reward.redeemedAt && (
           <div className="mt-3 text-[11px] text-zinc-400 italic">
-            Redeemed on {formatDate(reward.redeemedAt)}
-            {reward.redeemedBy ? ` by ${reward.redeemedBy}` : ''}
+            {t.redeemedOn} {formatDate(reward.redeemedAt)}
+            {reward.redeemedBy ? ` ${t.by} ${reward.redeemedBy}` : ''}
           </div>
         )}
       </div>

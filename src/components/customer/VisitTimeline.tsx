@@ -3,6 +3,8 @@
 import React from 'react';
 import { Visit } from '@/types';
 import { Scissors, Calendar, UserCheck, Trash2, Edit3 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 interface VisitTimelineProps {
   visits: Visit[];
@@ -17,13 +19,16 @@ export default function VisitTimeline({
   onDeleteVisit,
   onEditVisit,
 }: VisitTimelineProps) {
+  const { language, isArabic } = useLanguage();
+  const t = getTranslations(language).customer;
+
   if (!visits || visits.length === 0) {
     return (
       <div className="text-center py-10 px-4 rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
         <Scissors className="w-8 h-8 mx-auto text-zinc-600 mb-2 opacity-60" />
-        <p className="text-sm text-zinc-400">No haircut visits recorded yet.</p>
+        <p className="text-sm text-zinc-400">{t.noVisitsYet}</p>
         <p className="text-xs text-zinc-500 mt-1">
-          Visits will appear here automatically when recorded by your barber.
+          {t.noVisitsDesc}
         </p>
       </div>
     );
@@ -32,7 +37,7 @@ export default function VisitTimeline({
   const formatDate = (iso: string) => {
     try {
       const d = new Date(iso);
-      return d.toLocaleDateString('en-US', {
+      return d.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -45,14 +50,14 @@ export default function VisitTimeline({
   };
 
   return (
-    <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-amber-400 before:via-zinc-700 before:to-transparent">
+    <div className={`relative ${isArabic ? 'pr-6 before:right-2' : 'pl-6 before:left-2'} space-y-6 before:absolute before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-amber-400 before:via-zinc-700 before:to-transparent`}>
       {visits.map((visit, index) => {
         const visitNumber = visits.length - index;
 
         return (
           <div key={visit.id} className="relative group">
             {/* Timeline Dot */}
-            <div className="absolute -left-[27px] top-1.5 w-4 h-4 rounded-full bg-zinc-900 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_8px_rgba(212,175,55,0.5)] group-hover:scale-125 transition-transform duration-200">
+            <div className={`absolute ${isArabic ? '-right-[27px]' : '-left-[27px]'} top-1.5 w-4 h-4 rounded-full bg-zinc-900 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_8px_rgba(212,175,55,0.5)] group-hover:scale-125 transition-transform duration-200`}>
               <div className="w-1.5 h-1.5 rounded-full bg-amber-300" />
             </div>
 
@@ -61,10 +66,10 @@ export default function VisitTimeline({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-amber-400/10 text-amber-300 border border-amber-400/20">
-                    Visit #{visitNumber}
+                    {t.visit} #{visitNumber}
                   </span>
                   <span className="text-xs text-zinc-400">
-                    Cycle {visit.cycleNumber} • Stamp {visit.visitIndexInCycle}
+                    {t.cycle} {visit.cycleNumber} • {t.visit} {visit.visitIndexInCycle}
                   </span>
                 </div>
 
@@ -83,7 +88,7 @@ export default function VisitTimeline({
                   {visit.barberName && (
                     <p className="text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
                       <UserCheck className="w-3.5 h-3.5 text-amber-400/70" />
-                      Barber: <span className="text-zinc-300">{visit.barberName}</span>
+                      {t.barber}: <span className="text-zinc-300">{visit.barberName}</span>
                     </p>
                   )}
                   {visit.notes && (
@@ -97,7 +102,7 @@ export default function VisitTimeline({
                 <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center">
                   {visit.price !== undefined && (
                     <span className="font-mono text-xs font-bold text-amber-400/90 bg-amber-950/40 px-2.5 py-1 rounded-md border border-amber-900/50">
-                      {visit.price === 0 ? 'FREE REWARD' : `${visit.price} EGP`}
+                      {visit.price === 0 ? t.freeRewardBadge : `${visit.price} ${t.egp}`}
                     </span>
                   )}
 

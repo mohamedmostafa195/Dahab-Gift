@@ -1,8 +1,8 @@
-'use client';
-
 import React from 'react';
 import { Scissors, Sparkles, Gift, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 interface StampPunchCardProps {
   currentVisits: number;
@@ -23,9 +23,15 @@ export default function StampPunchCard({
   tier = 'GOLD',
   hasUnclaimedReward = false,
 }: StampPunchCardProps) {
+  const { language, isArabic } = useLanguage();
+  const t = getTranslations(language).customer;
   const remaining = Math.max(0, targetVisits - currentVisits);
   const percent = Math.min(100, Math.round((currentVisits / targetVisits) * 100));
   const isGoalReached = currentVisits >= targetVisits || hasUnclaimedReward;
+
+  const displayTier = t.tiers[tier.toUpperCase() as keyof typeof t.tiers] || tier;
+  const displayRewardTitle =
+    rewardTitle === 'Free Signature Haircut' ? t.defaultRewardTitle : rewardTitle;
 
   const triggerCelebration = () => {
     confetti({
@@ -47,10 +53,10 @@ export default function StampPunchCard({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs uppercase tracking-widest font-semibold px-2.5 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
-              {tier} MEMBER
+              {displayTier} {t.member}
             </span>
             <span className="text-xs text-zinc-400 font-medium">
-              Cycle #{currentCycle}
+              {t.cycle} #{currentCycle}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
@@ -59,8 +65,8 @@ export default function StampPunchCard({
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="text-right">
-            <p className="text-xs text-zinc-400 uppercase tracking-wider">Haircuts Completed</p>
+          <div className={isArabic ? 'text-left sm:text-left' : 'text-right'}>
+            <p className="text-xs text-zinc-400 uppercase tracking-wider">{t.haircutsCompleted}</p>
             <p className="text-2xl sm:text-3xl font-bold font-mono text-amber-400">
               {currentVisits} <span className="text-zinc-600 text-lg sm:text-xl">/ {targetVisits}</span>
             </p>
@@ -71,8 +77,10 @@ export default function StampPunchCard({
       {/* Stamp Punch Grid */}
       <div className="my-6">
         <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3 flex items-center justify-between">
-          <span>Digital Stamp Card</span>
-          <span className="text-amber-400">{percent}% Complete</span>
+          <span>{t.digitalStampCard}</span>
+          <span className="text-amber-400">
+            {percent}% {t.complete}
+          </span>
         </div>
 
         <div className="grid grid-cols-5 gap-2.5 sm:gap-4">
@@ -115,7 +123,7 @@ export default function StampPunchCard({
                       )}
                     </div>
                     <span className="text-[10px] text-zinc-500">
-                      {isTargetStamp ? 'Reward' : `Visit ${stampNumber}`}
+                      {isTargetStamp ? t.reward : `${t.visit} ${stampNumber}`}
                     </span>
                   </div>
                 )}
@@ -166,10 +174,10 @@ export default function StampPunchCard({
             </div>
             <div>
               <p className="text-xs text-zinc-400 uppercase tracking-wider font-medium">
-                {isGoalReached ? '🎉 Reward Unlocked!' : 'Next Reward'}
+                {isGoalReached ? t.rewardUnlocked : t.nextReward}
               </p>
               <p className="text-sm sm:text-base font-bold text-white">
-                {rewardTitle}
+                {displayRewardTitle}
               </p>
             </div>
           </div>
@@ -178,11 +186,12 @@ export default function StampPunchCard({
             {isGoalReached ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-zinc-950 text-xs font-bold shadow-md shadow-amber-400/20">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Ready to Redeem
+                {t.readyToRedeem}
               </span>
             ) : (
               <span className="text-xs text-amber-300/90 font-medium">
-                <strong className="text-amber-300 font-bold">{remaining}</strong> more haircut{remaining > 1 ? 's' : ''} to go
+                <strong className="text-amber-300 font-bold">{remaining}</strong>{' '}
+                {remaining === 1 ? t.oneMoreHaircutToGo : t.moreHaircutsToGo}
               </span>
             )}
           </div>

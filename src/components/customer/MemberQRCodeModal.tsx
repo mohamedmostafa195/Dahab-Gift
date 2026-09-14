@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { QrCode, X, Copy, Check, Sparkles, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 interface MemberQRCodeModalProps {
   memberCode: string;
@@ -22,6 +24,8 @@ export default function MemberQRCodeModal({
   onClose,
 }: MemberQRCodeModalProps) {
   const [copied, setCopied] = useState(false);
+  const { language, isArabic } = useLanguage();
+  const t = getTranslations(language).customer;
 
   if (!isOpen) return null;
 
@@ -40,7 +44,7 @@ export default function MemberQRCodeModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-zinc-800/80 text-zinc-400 hover:text-white hover:bg-zinc-700 transition"
+          className={`absolute top-4 ${isArabic ? 'left-4' : 'right-4'} p-2 rounded-full bg-zinc-800/80 text-zinc-400 hover:text-white hover:bg-zinc-700 transition`}
         >
           <X className="w-5 h-5" />
         </button>
@@ -49,7 +53,7 @@ export default function MemberQRCodeModal({
         <div className="flex items-center justify-center gap-1.5 mb-1 text-amber-400">
           <Sparkles className="w-4 h-4" />
           <span className="text-xs uppercase tracking-widest font-semibold">
-            DAHAB VIP PASS
+            {t.brand} {t.vipPass}
           </span>
         </div>
 
@@ -72,9 +76,9 @@ export default function MemberQRCodeModal({
 
         {/* Member Code with Copy */}
         <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-3 mb-5 flex items-center justify-between gap-2">
-          <div className="text-left">
+          <div className={isArabic ? 'text-right' : 'text-left'}>
             <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">
-              Member Code
+              {t.memberCode}
             </span>
             <span className="text-base font-mono font-bold text-amber-300">
               {memberCode}
@@ -87,12 +91,12 @@ export default function MemberQRCodeModal({
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400">Copied</span>
+                <span className="text-emerald-400">{t.copied}</span>
               </>
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5 text-zinc-400" />
-                <span>Copy</span>
+                <span>{t.copy}</span>
               </>
             )}
           </button>
@@ -100,8 +104,8 @@ export default function MemberQRCodeModal({
 
         {/* Scan instruction */}
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-400">
-          <ShieldCheck className="w-4 h-4 text-amber-400" />
-          <span>Show this QR code to the barber upon arrival</span>
+          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{t.showQrInstruction}</span>
         </div>
       </div>
     </div>

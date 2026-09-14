@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Scissors, Sparkles, User, Menu, X, Video } from 'lucide-react';
+import { Scissors, Sparkles, User, Menu, X, Video, Globe } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -19,6 +21,8 @@ function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { language, setLanguage, toggleLanguage, isArabic } = useLanguage();
+  const t = getTranslations(language);
   const instagramUrl = 'https://www.instagram.com/dahabbarbershop';
 
   return (
@@ -31,10 +35,10 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-serif text-2xl font-extrabold tracking-wider text-white">
-              DAHAB
+              {t.nav.brand}
             </span>
             <span className="text-[10px] uppercase tracking-[0.25em] text-amber-400 font-semibold -mt-1">
-              Grooming Lounge
+              {t.nav.tagline}
             </span>
           </div>
         </Link>
@@ -42,23 +46,51 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-300">
           <Link href="/#services" className="hover:text-amber-300 transition">
-            Services & Pricing
+            {t.nav.services}
           </Link>
           <Link href="/#loyalty" className="hover:text-amber-300 transition flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Loyalty Rewards (5=1 Free)
+            {t.nav.loyalty}
           </Link>
           <Link href="/#lounge-experience" className="hover:text-amber-300 transition flex items-center gap-1.5">
             <Video className="w-3.5 h-3.5 text-amber-400" />
-            Lounge Film
+            {t.nav.loungeFilm}
           </Link>
           <Link href="/#barbers" className="hover:text-amber-300 transition">
-            Master Barbers
+            {t.nav.barbers}
           </Link>
         </nav>
 
         {/* Action Buttons */}
         <div className="hidden sm:flex items-center gap-3">
+          {/* Language Switcher Button (AR / EN) */}
+          <div className="flex items-center bg-zinc-900/90 border border-zinc-800/90 rounded-xl p-1 gap-1 text-xs font-bold shadow-inner">
+            <button
+              type="button"
+              onClick={() => setLanguage('en')}
+              className={`px-2.5 py-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                language === 'en'
+                  ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black shadow-sm shadow-amber-500/20 scale-[1.02]'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
+              }`}
+              title="English"
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage('ar')}
+              className={`px-2.5 py-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                language === 'ar'
+                  ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black shadow-sm shadow-amber-500/20 scale-[1.02]'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
+              }`}
+              title="العربية"
+            >
+              AR
+            </button>
+          </div>
+
           <a
             href={instagramUrl}
             target="_blank"
@@ -74,17 +106,45 @@ export default function Navbar() {
             className="gold-btn px-5 py-2.5 rounded-xl text-xs font-black tracking-wide flex items-center gap-1.5 shadow-md shadow-amber-500/20 hover:scale-[1.02] transition"
           >
             <User className="w-4 h-4" />
-            <span>Login</span>
+            <span>{t.nav.login}</span>
           </Link>
         </div>
 
-        {/* Mobile Menu Trigger */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile Actions (Lang Button + Menu Trigger) */}
+        <div className="md:hidden flex items-center gap-2">
+          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-0.5 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setLanguage('en')}
+              className={`px-2 py-1 rounded-lg transition ${
+                language === 'en'
+                  ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black'
+                  : 'text-zinc-400'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage('ar')}
+              className={`px-2 py-1 rounded-lg transition ${
+                language === 'ar'
+                  ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black'
+                  : 'text-zinc-400'
+              }`}
+            >
+              AR
+            </button>
+          </div>
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white"
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer */}
@@ -96,7 +156,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
               className="py-2 text-zinc-300 hover:text-amber-400"
             >
-              Services & Pricing
+              {t.nav.services}
             </Link>
             <Link
               href="/#loyalty"
@@ -104,7 +164,7 @@ export default function Navbar() {
               className="py-2 text-amber-400 font-semibold flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
-              Loyalty Rewards (5=1 Free)
+              {t.nav.loyalty}
             </Link>
             <Link
               href="/#lounge-experience"
@@ -112,18 +172,50 @@ export default function Navbar() {
               className="py-2 text-zinc-300 hover:text-amber-400 flex items-center gap-2"
             >
               <Video className="w-4 h-4 text-amber-400" />
-              Lounge Film & Experience
+              {t.nav.loungeFilmFull}
             </Link>
             <Link
               href="/#barbers"
               onClick={() => setMobileMenuOpen(false)}
               className="py-2 text-zinc-300 hover:text-amber-400"
             >
-              Master Barbers
+              {t.nav.barbers}
             </Link>
           </div>
 
           <div className="pt-4 border-t border-zinc-800 flex flex-col gap-2.5">
+            {/* Language Switch Row inside Drawer */}
+            <div className="flex items-center justify-between p-2 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-300 px-2">
+                <Globe className="w-4 h-4 text-amber-400" />
+                <span>{t.nav.switchLang}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-1.5 rounded-lg transition ${
+                    language === 'en'
+                      ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  English (EN)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('ar')}
+                  className={`px-3 py-1.5 rounded-lg transition ${
+                    language === 'ar'
+                      ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  العربية (AR)
+                </button>
+              </div>
+            </div>
+
             <a
               href={instagramUrl}
               target="_blank"
@@ -131,7 +223,7 @@ export default function Navbar() {
               className="w-full py-3 rounded-xl bg-zinc-900 text-center text-sm font-bold border border-pink-500/30 text-pink-400 flex items-center justify-center gap-2"
             >
               <InstagramIcon className="w-4 h-4" />
-              <span>Instagram @dahabbarbershop</span>
+              <span>{t.nav.followIg} @dahabbarbershop</span>
             </a>
 
             <Link
@@ -140,7 +232,7 @@ export default function Navbar() {
               className="gold-btn w-full py-3 rounded-xl text-center text-sm font-bold flex items-center justify-center gap-2"
             >
               <User className="w-4 h-4" />
-              Login
+              {t.nav.login}
             </Link>
           </div>
         </div>
@@ -148,3 +240,4 @@ export default function Navbar() {
     </header>
   );
 }
+

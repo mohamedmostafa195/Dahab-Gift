@@ -3,10 +3,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Scissors, User, Lock, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Scissors, User, Lock, ArrowRight, Loader2, Sparkles, Globe } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 export default function CustomerLoginPage() {
   const router = useRouter();
+  const { language, setLanguage, isArabic } = useLanguage();
+  const t = getTranslations(language).auth;
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +34,7 @@ export default function CustomerLoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Invalid credentials');
+        throw new Error(data.error || (isArabic ? 'بيانات الدخول غير صحيحة' : 'Invalid credentials'));
       }
 
       if (data.role === 'ADMIN') {
@@ -55,7 +59,7 @@ export default function CustomerLoginPage() {
         router.push('/customer/dashboard');
       }
     } catch (err: any) {
-      setError(err.message || 'Error signing in. Please check your details.');
+      setError(err.message || (isArabic ? 'حدث خطأ أثناء تسجيل الدخول' : 'Error signing in. Please check your details.'));
     } finally {
       setLoading(false);
     }
@@ -63,6 +67,34 @@ export default function CustomerLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#08080a] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden selection:bg-amber-400/30 selection:text-amber-200">
+      {/* Top right language switch */}
+      <div className="absolute top-6 right-6 z-20">
+        <div className="flex items-center bg-zinc-900/90 border border-zinc-800 rounded-xl p-0.5 text-xs font-bold shadow-md">
+          <button
+            type="button"
+            onClick={() => setLanguage('en')}
+            className={`px-2.5 py-1 rounded-lg transition ${
+              language === 'en'
+                ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage('ar')}
+            className={`px-2.5 py-1 rounded-lg transition ${
+              language === 'ar'
+                ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            AR
+          </button>
+        </div>
+      </div>
+
       {/* Ambient background glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -75,10 +107,10 @@ export default function CustomerLoginPage() {
             </div>
           </Link>
           <h2 className="text-3xl font-serif font-bold text-white tracking-wide">
-            Member Sign In
+            {t.signInTitle}
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 font-light">
-            Enter your credentials to access your VIP pass and rewards
+            {t.signInSubtitle}
           </p>
         </div>
 
@@ -94,17 +126,17 @@ export default function CustomerLoginPage() {
             {/* Phone or Email input */}
             <div>
               <label className="block text-xs uppercase tracking-wider text-zinc-300 font-semibold mb-1.5">
-                Phone Number or Email
+                {t.phoneOrEmail}
               </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <User className={`absolute ${isArabic ? 'right-3.5' : 'left-3.5'} top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500`} />
                 <input
                   type="text"
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="01012345678 or your.email@example.com"
-                  className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 placeholder:text-zinc-600 transition"
+                  placeholder={isArabic ? '01012345678 أو البريد الإلكتروني' : '01012345678 or your.email@example.com'}
+                  className={`w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl ${isArabic ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 text-sm text-white focus:outline-none focus:border-amber-400 placeholder:text-zinc-600 transition`}
                 />
               </div>
             </div>
@@ -113,18 +145,18 @@ export default function CustomerLoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs uppercase tracking-wider text-zinc-300 font-semibold">
-                  Password / PIN *
+                  {t.passwordPin} *
                 </label>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Lock className={`absolute ${isArabic ? 'right-3.5' : 'left-3.5'} top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500`} />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 font-mono placeholder:text-zinc-600 transition"
+                  className={`w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl ${isArabic ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 text-sm text-white focus:outline-none focus:border-amber-400 font-mono placeholder:text-zinc-600 transition`}
                 />
               </div>
             </div>
@@ -133,17 +165,17 @@ export default function CustomerLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="gold-btn w-full py-3.5 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 mt-3 hover:scale-[1.01] transition duration-200"
+              className="gold-btn w-full py-3.5 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 mt-3 hover:scale-[1.01] transition duration-200 cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Signing In...</span>
+                  <span>{t.signingIn}</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>{t.signInBtn}</span>
+                  <ArrowRight className={`w-4 h-4 ${isArabic ? 'rotate-180' : ''}`} />
                 </>
               )}
             </button>
@@ -151,12 +183,12 @@ export default function CustomerLoginPage() {
 
           {/* Register link */}
           <div className="mt-6 pt-5 border-t border-zinc-800/80 text-center text-xs text-zinc-400">
-            Don't have an account?{' '}
+            {t.noAccount}{' '}
             <Link
               href="/customer/register"
               className="text-amber-400 hover:text-amber-300 font-bold transition"
             >
-              Register
+              {t.registerLink}
             </Link>
           </div>
         </div>
@@ -164,7 +196,7 @@ export default function CustomerLoginPage() {
         {/* Back Link */}
         <div className="mt-6 text-center text-xs text-zinc-500">
           <Link href="/" className="hover:text-zinc-300 transition">
-            ← Back to Barbershop Site
+            {t.backToSite}
           </Link>
         </div>
       </div>

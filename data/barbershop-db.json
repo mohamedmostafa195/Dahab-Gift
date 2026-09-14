@@ -114,6 +114,24 @@
       "role": "CUSTOMER",
       "passwordHash": "123456",
       "createdAt": "2026-09-13T10:46:49.652Z"
+    },
+    {
+      "id": "user-1789369905174-742",
+      "phoneNumber": "01000774245",
+      "fullName": "Test9",
+      "email": "",
+      "role": "CUSTOMER",
+      "passwordHash": "12345",
+      "createdAt": "2026-09-14T07:11:45.174Z"
+    },
+    {
+      "id": "user-1789370178953-84",
+      "phoneNumber": "01000774549",
+      "fullName": "Test12",
+      "email": "",
+      "role": "CUSTOMER",
+      "passwordHash": "1234",
+      "createdAt": "2026-09-14T07:16:18.953Z"
     }
   ],
   "customers": [
@@ -283,6 +301,34 @@
       "tier": "BRONZE",
       "createdAt": "2026-09-13T10:46:49.652Z",
       "updatedAt": "2026-09-13T10:46:49.652Z"
+    },
+    {
+      "id": "cust-1789369905176-182",
+      "userId": "user-1789369905174-742",
+      "fullName": "Test9",
+      "phoneNumber": "01000774245",
+      "email": "",
+      "memberCode": "DHB-2732",
+      "currentCycle": 1,
+      "currentVisits": 0,
+      "lifetimeVisits": 0,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-14T07:11:45.174Z",
+      "updatedAt": "2026-09-14T07:11:45.174Z"
+    },
+    {
+      "id": "cust-1789370178954-695",
+      "userId": "user-1789370178953-84",
+      "fullName": "Test12",
+      "phoneNumber": "01000774549",
+      "email": "",
+      "memberCode": "DHB-7709",
+      "currentCycle": 1,
+      "currentVisits": 0,
+      "lifetimeVisits": 0,
+      "tier": "BRONZE",
+      "createdAt": "2026-09-14T07:16:18.953Z",
+      "updatedAt": "2026-09-14T07:16:18.953Z"
     }
   ],
   "visits": [

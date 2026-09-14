@@ -1,6 +1,10 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Scissors, MapPin, Phone, Clock, Globe } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 
 function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -16,6 +20,9 @@ function InstagramIcon({ className = 'w-4 h-4' }: { className?: string }) {
 }
 
 export default function Footer() {
+  const { language } = useLanguage();
+  const tNav = getTranslations(language).nav;
+  const t = getTranslations(language).footer;
   const instagramUrl = 'https://www.instagram.com/dahabbarbershop';
 
   return (
@@ -29,11 +36,11 @@ export default function Footer() {
                 <Scissors className="w-5 h-5" />
               </div>
               <span className="font-serif text-2xl font-bold text-white tracking-wider">
-                DAHAB
+                {tNav.brand}
               </span>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Cairo’s luxury grooming sanctuary. Where traditional master craftsmanship meets modern luxury and loyalty rewards.
+              {t.desc}
             </p>
             <div className="flex items-center gap-3 text-amber-400 pt-2">
               <a
@@ -51,32 +58,32 @@ export default function Footer() {
           {/* Quick Links */}
           <div>
             <h4 className="font-serif text-white font-bold text-base mb-4 tracking-wide">
-              Quick Links
+              {t.quickLinks}
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
                 <Link href="/#services" className="hover:text-amber-300 transition">
-                  Services Menu
+                  {t.servicesMenu}
                 </Link>
               </li>
               <li>
                 <Link href="/#loyalty" className="hover:text-amber-300 transition">
-                  VIP Loyalty Program (5 = 1 Free)
+                  {t.vipLoyalty}
                 </Link>
               </li>
               <li>
                 <Link href="/#lounge-experience" className="hover:text-amber-300 transition">
-                  Lounge Film & Story
+                  {t.loungeFilmStory}
                 </Link>
               </li>
               <li>
                 <Link href="/#barbers" className="hover:text-amber-300 transition">
-                  Our Master Stylists
+                  {t.masterStylists}
                 </Link>
               </li>
               <li>
                 <Link href="/customer/login" className="hover:text-amber-300 transition">
-                  Check My Haircut Stamps
+                  {t.checkStamps}
                 </Link>
               </li>
             </ul>
@@ -86,19 +93,19 @@ export default function Footer() {
           <div>
             <h4 className="font-serif text-white font-bold text-base mb-4 tracking-wide flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-400" />
-              Working Hours
+              {t.workingHours}
             </h4>
             <ul className="space-y-2 text-xs">
               <li className="flex justify-between border-b border-zinc-800/60 pb-1.5">
-                <span>Saturday – Thursday</span>
-                <span className="text-white font-medium">11:00 AM – 11:00 PM</span>
+                <span>{t.satThu}</span>
+                <span className="text-white font-medium">{t.satThuTime}</span>
               </li>
               <li className="flex justify-between border-b border-zinc-800/60 pb-1.5">
-                <span>Friday</span>
-                <span className="text-white font-medium">1:30 PM – 12:00 AM</span>
+                <span>{t.friday}</span>
+                <span className="text-white font-medium">{t.fridayTime}</span>
               </li>
               <li className="text-amber-400/90 pt-1 text-[11px]">
-                ★ Walk-ins and reservations welcome
+                {t.walkins}
               </li>
             </ul>
           </div>
@@ -107,12 +114,12 @@ export default function Footer() {
           <div>
             <h4 className="font-serif text-white font-bold text-base mb-4 tracking-wide flex items-center gap-2">
               <MapPin className="w-4 h-4 text-amber-400" />
-              Location & Contact
+              {t.locationContact}
             </h4>
             <ul className="space-y-3 text-xs">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>24 El-Mirghani St., Heliopolis, Cairo, Egypt</span>
+                <span>{t.address}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />
@@ -124,9 +131,9 @@ export default function Footer() {
 
         {/* Bottom Credits */}
         <div className="pt-8 border-t border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
-          <p>© {new Date().getFullYear()} DAHAB Grooming Lounge. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {tNav.brand} {tNav.tagline}. {t.allRightsReserved}</p>
           <p className="flex items-center gap-1">
-            Engineered with luxury precision & loyalty intelligence.
+            {t.credits}
           </p>
         </div>
       </div>

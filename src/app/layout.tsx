@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
-import { Outfit, Playfair_Display } from 'next/font/google';
+import { Outfit, Playfair_Display, Cairo } from 'next/font/google';
+import { LanguageProvider } from '@/context/LanguageContext';
 import './globals.css';
 
 const outfit = Outfit({
@@ -11,6 +12,12 @@ const outfit = Outfit({
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-serif',
+  display: 'swap',
+});
+
+const cairo = Cairo({
+  subsets: ['arabic', 'latin'],
+  variable: '--font-cairo',
   display: 'swap',
 });
 
@@ -40,9 +47,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${playfair.variable} dark antialiased`}>
+    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${cairo.variable} dark antialiased`}>
       <body className="min-h-screen bg-[#08080a] text-zinc-100 font-sans selection:bg-[#d4af37]/30 selection:text-amber-200">
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -23,6 +23,10 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: hidden;
   }
+
+  [lang="ar"], [dir="rtl"] {
+    font-family: var(--font-cairo), system-ui, sans-serif;
+  }
 }
 
 /* Luxury Gold & Metallic Gradients */

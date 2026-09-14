@@ -8,6 +8,8 @@ import MemberQRCodeModal from '@/components/customer/MemberQRCodeModal';
 import RewardCard from '@/components/customer/RewardCard';
 import VisitTimeline from '@/components/customer/VisitTimeline';
 import { Customer, Visit, Reward, LoyaltyRule } from '@/types';
+import { useLanguage } from '@/context/LanguageContext';
+import { getTranslations } from '@/lib/translations';
 import {
   Scissors,
   QrCode,
@@ -22,10 +24,13 @@ import {
   CheckCircle2,
   ChevronRight,
   ExternalLink,
+  Globe,
 } from 'lucide-react';
 
 export default function CustomerDashboardPage() {
   const router = useRouter();
+  const { language, setLanguage, isArabic } = useLanguage();
+  const t = getTranslations(language).customer;
   const [loading, setLoading] = useState(true);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [rule, setRule] = useState<LoyaltyRule | null>(null);
@@ -123,7 +128,7 @@ export default function CustomerDashboardPage() {
         <div className="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-300 flex items-center justify-center animate-spin mb-4 border border-amber-400/30">
           <Scissors className="w-6 h-6" />
         </div>
-        <p className="text-sm font-medium text-zinc-300">Loading your loyalty pass...</p>
+        <p className="text-sm font-medium text-zinc-300">{t.loadingPass}</p>
       </div>
     );
   }
@@ -132,12 +137,12 @@ export default function CustomerDashboardPage() {
     return (
       <div className="min-h-screen bg-[#08080a] flex flex-col items-center justify-center p-6 text-center">
         <Scissors className="w-12 h-12 text-amber-400 mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">No Member Profile Found</h2>
+        <h2 className="text-xl font-bold text-white mb-2">{t.noProfileTitle}</h2>
         <p className="text-xs text-zinc-400 max-w-sm mb-6">
-          Please sign in with your registered phone number or create a new profile.
+          {t.noProfileDesc}
         </p>
         <Link href="/customer/login" className="gold-btn px-6 py-2.5 rounded-xl text-xs font-bold">
-          Sign In Now
+          {t.signInNow}
         </Link>
       </div>
     );
@@ -145,6 +150,8 @@ export default function CustomerDashboardPage() {
 
   const targetVisits = rule?.targetVisits || 5;
   const hasRewardReady = customer.currentVisits >= targetVisits || activeRewards.length > 0;
+  const displayTier = t.tiers[customer.tier.toUpperCase() as keyof typeof t.tiers] || customer.tier;
+  const remainingHaircuts = Math.max(0, targetVisits - customer.currentVisits);
 
   return (
     <div className="min-h-screen bg-[#08080a] text-zinc-100 flex flex-col selection:bg-amber-400/30 selection:text-amber-200">
@@ -156,33 +163,61 @@ export default function CustomerDashboardPage() {
               <Scissors className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-serif text-lg font-bold text-white block">DAHAB</span>
+              <span className="font-serif text-lg font-bold text-white block">{t.brand}</span>
               <span className="text-[9px] uppercase tracking-widest text-amber-400 font-semibold block -mt-1">
-                VIP Pass
+                {t.vipPass}
               </span>
             </div>
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Switcher Toggle */}
+            <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl p-0.5 text-xs font-bold shadow-inner">
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`px-2.5 py-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                  language === 'en'
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="English"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('ar')}
+                className={`px-2.5 py-1 rounded-lg transition-all duration-200 cursor-pointer ${
+                  language === 'ar'
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-600 text-zinc-950 font-black shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+                title="العربية"
+              >
+                AR
+              </button>
+            </div>
+
             <button
               onClick={() => setQrModalOpen(true)}
-              className="gold-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-black shadow-md"
+              className="gold-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-black shadow-md cursor-pointer"
             >
               <QrCode className="w-4 h-4" />
-              <span className="hidden sm:inline">Show</span> QR Pass
+              <span className="hidden sm:inline">{t.show}</span> {t.showQrPass}
             </button>
 
             <button
               onClick={() => {
-                if (confirm('Sign out of your member account?')) {
+                if (confirm(t.signOutConfirm)) {
                   handleLogout();
                 }
               }}
-              title="Sign Out"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition"
+              title={t.signOut}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5 text-rose-400" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <span className="hidden sm:inline">{t.signOut}</span>
             </button>
           </div>
         </div>
@@ -199,23 +234,23 @@ export default function CustomerDashboardPage() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] uppercase tracking-widest font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-zinc-950">
-                  {customer.tier}
+                  {displayTier}
                 </span>
                 <span className="font-mono text-xs text-amber-300 font-bold">
                   {customer.memberCode}
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-white">
-                Welcome back, {customer.fullName}
+                {t.welcomeBack} {customer.fullName}
               </h1>
-              <p className="text-xs text-zinc-400 mt-0.5">{customer.phoneNumber}</p>
+              <p className="text-xs text-zinc-400 mt-0.5 font-mono">{customer.phoneNumber}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 sm:border-l sm:border-zinc-800 sm:pl-6 pt-3 sm:pt-0 border-t border-zinc-800/80 sm:border-t-0">
+          <div className={`flex items-center gap-4 sm:border-zinc-800 ${isArabic ? 'sm:border-r sm:pr-6 sm:pl-0' : 'sm:border-l sm:pl-6 sm:pr-0'} pt-3 sm:pt-0 border-t border-zinc-800/80 sm:border-t-0`}>
             <div>
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">
-                Lifetime Visits
+                {t.lifetimeVisits}
               </span>
               <span className="text-xl font-mono font-bold text-white">
                 {customer.lifetimeVisits}
@@ -223,7 +258,7 @@ export default function CustomerDashboardPage() {
             </div>
             <div>
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider block">
-                Total Rewards
+                {t.totalRewards}
               </span>
               <span className="text-xl font-mono font-bold text-amber-400">
                 {activeRewards.length + pastRewards.length}
@@ -251,7 +286,7 @@ export default function CustomerDashboardPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-serif font-bold text-white flex items-center gap-2">
                 <Gift className="w-5 h-5 text-amber-400" />
-                <span>Available Rewards Ready to Claim ({activeRewards.length})</span>
+                <span>{t.availableRewards} ({activeRewards.length})</span>
               </h2>
             </div>
 
@@ -269,33 +304,33 @@ export default function CustomerDashboardPage() {
             <div className="flex items-center gap-6">
               <button
                 onClick={() => setActiveTab('rewards')}
-                className={`text-sm font-serif font-bold pb-2 -mb-3 transition-colors relative ${
+                className={`text-sm font-serif font-bold pb-2 -mb-3 transition-colors relative cursor-pointer ${
                   activeTab === 'rewards'
                     ? 'text-amber-400 border-b-2 border-amber-400'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                Reward Wallet ({activeRewards.length + pastRewards.length})
+                {t.rewardWallet} ({activeRewards.length + pastRewards.length})
               </button>
               <button
                 onClick={() => setActiveTab('history')}
-                className={`text-sm font-serif font-bold pb-2 -mb-3 transition-colors relative ${
+                className={`text-sm font-serif font-bold pb-2 -mb-3 transition-colors relative cursor-pointer ${
                   activeTab === 'history'
                     ? 'text-amber-400 border-b-2 border-amber-400'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                Visit History ({visits.length})
+                {t.visitHistory} ({visits.length})
               </button>
             </div>
 
             <button
               onClick={fetchProfile}
-              title="Refresh Data"
-              className="text-xs text-zinc-400 hover:text-amber-300 flex items-center gap-1"
+              title={t.refresh}
+              className="text-xs text-zinc-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer transition"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
+              <span>{t.refresh}</span>
             </button>
           </div>
 
@@ -304,9 +339,9 @@ export default function CustomerDashboardPage() {
               {activeRewards.length === 0 && pastRewards.length === 0 ? (
                 <div className="p-8 text-center rounded-2xl bg-zinc-900/40 border border-zinc-800">
                   <Gift className="w-8 h-8 mx-auto text-zinc-600 mb-2 opacity-60" />
-                  <p className="text-sm text-zinc-400">No rewards earned yet.</p>
+                  <p className="text-sm text-zinc-400">{t.noRewardsYet}</p>
                   <p className="text-xs text-zinc-500 mt-1">
-                    Complete {targetVisits - customer.currentVisits} more haircuts to unlock your first reward!
+                    {t.noRewardsDesc.replace('{count}', String(remainingHaircuts))}
                   </p>
                 </div>
               ) : (
