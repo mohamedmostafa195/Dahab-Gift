@@ -82,7 +82,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/customer/login" className="hover:text-amber-300 transition">
+                <Link href="/admin/login" className="hover:text-amber-300 transition">
                   {t.checkStamps}
                 </Link>
               </li>

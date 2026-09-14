@@ -783,7 +783,7 @@ export default function LandingPage() {
             </p>
             <div className="pt-3 flex flex-wrap items-center justify-center gap-4">
               <Link
-                href="/customer/login"
+                href="/admin/login"
                 className="gold-btn px-8 py-3.5 rounded-xl text-sm font-black tracking-wide flex items-center justify-center gap-2 shadow-lg"
               >
                 <span>{tJoin.btn}</span>

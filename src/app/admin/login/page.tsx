@@ -33,11 +33,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const setDemoCredentials = (email: string, pass: string) => {
-    setIdentifier(email);
-    setPassword(pass);
-    setError('');
-  };
 
   return (
     <div className="min-h-screen bg-[#08080a] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -126,45 +121,6 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Fill Buttons */}
-          <div className="mt-6 pt-5 border-t border-zinc-800/80">
-            <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-2.5">
-              Available Login Credentials:
-            </span>
-            <div className="space-y-1.5">
-              <button
-                type="button"
-                onClick={() =>
-                  setDemoCredentials('admin@dahabbarbershop.com', 'admin123')
-                }
-                className="w-full text-left p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-xs border border-zinc-800 flex items-center justify-between transition"
-              >
-                <div>
-                  <span className="text-white font-bold block">Admin Account</span>
-                  <span className="text-[11px] text-zinc-400 font-mono">
-                    admin@dahabbarbershop.com
-                  </span>
-                </div>
-                <span className="font-mono text-amber-400 text-xs font-bold">
-                  admin123
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('admin', '1234')}
-                className="w-full text-left p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-xs border border-zinc-800 flex items-center justify-between transition"
-              >
-                <div>
-                  <span className="text-white font-bold block">Quick Staff PIN</span>
-                  <span className="text-[11px] text-zinc-400 font-mono">admin</span>
-                </div>
-                <span className="font-mono text-amber-400 text-xs font-bold">
-                  PIN: 1234
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
 
         <div className="mt-8 text-center">

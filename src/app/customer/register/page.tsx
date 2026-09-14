@@ -226,7 +226,7 @@ export default function CustomerRegisterPage() {
           <div className="mt-6 text-center text-xs text-zinc-400">
             {t.haveAccount}{' '}
             <Link
-              href="/customer/login"
+              href="/admin/login"
               className="text-amber-400 hover:text-amber-300 font-bold"
             >
               {t.signInHere}
