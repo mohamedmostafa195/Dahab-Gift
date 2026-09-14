@@ -52,7 +52,7 @@ export default function CustomerDashboardPage() {
       const cachedDataRaw = localStorage.getItem('dahab_customer_data');
 
       if (!phone && !customerId && !cachedDataRaw) {
-        router.push('/customer/login');
+        router.push('/admin/login');
         return;
       }
 
@@ -119,7 +119,7 @@ export default function CustomerDashboardPage() {
     localStorage.removeItem('dahab_customer_id');
     localStorage.removeItem('dahab_customer_name');
     localStorage.removeItem('dahab_customer_data');
-    router.push('/customer/login');
+    router.push('/admin/login');
   };
 
   if (loading) {
@@ -141,7 +141,7 @@ export default function CustomerDashboardPage() {
         <p className="text-xs text-zinc-400 max-w-sm mb-6">
           {t.noProfileDesc}
         </p>
-        <Link href="/customer/login" className="gold-btn px-6 py-2.5 rounded-xl text-xs font-bold">
+        <Link href="/admin/login" className="gold-btn px-6 py-2.5 rounded-xl text-xs font-bold">
           {t.signInNow}
         </Link>
       </div>
