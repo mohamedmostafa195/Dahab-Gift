@@ -104,9 +104,6 @@ export default function Footer() {
                 <span>{t.friday}</span>
                 <span className="text-white font-medium">{t.fridayTime}</span>
               </li>
-              <li className="text-amber-400/90 pt-1 text-[11px]">
-                {t.walkins}
-              </li>
             </ul>
           </div>
 
@@ -117,13 +114,27 @@ export default function Footer() {
               {t.locationContact}
             </h4>
             <ul className="space-y-3 text-xs">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>{t.address}</span>
+              <li>
+                <a
+                  href="https://maps.apple/p/gq51gvKx_7ELGp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2.5 hover:text-amber-300 transition group"
+                  title="Open Location in Maps"
+                >
+                  <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <span className="leading-relaxed underline decoration-amber-500/30 underline-offset-4">{t.address}</span>
+                </a>
               </li>
-              <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="font-mono text-zinc-200">+20 10 1234 5678</span>
+              <li>
+                <a
+                  href="tel:+201091310689"
+                  className="flex items-center gap-2.5 hover:text-amber-300 transition group"
+                  title="Call Barbershop"
+                >
+                  <Phone className="w-4 h-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="font-mono text-zinc-200 font-bold tracking-wider">01091310689</span>
+                </a>
               </li>
             </ul>
           </div>

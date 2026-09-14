@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/lib/admin-auth';
-import { Scissors, ShieldCheck, KeyRound, ArrowRight, Loader2, Lock, CheckCircle2 } from 'lucide-react';
+import { Scissors, ShieldCheck, KeyRound, ArrowRight, ArrowLeft, Loader2, Lock, CheckCircle2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -167,9 +167,13 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        <div className="mt-6 text-center text-xs text-zinc-500">
-          <Link href="/" className="hover:text-zinc-300">
-            ← Return to Barbershop Public Website
+        <div className="mt-8 text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 text-xs font-bold border border-amber-500/30 hover:border-amber-400/70 shadow-lg shadow-black/60 transition-all duration-200 group cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Return to Barbershop Public Website</span>
           </Link>
         </div>
       </div>

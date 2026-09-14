@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Scissors, User, Lock, ArrowRight, Loader2, Sparkles, Globe } from 'lucide-react';
+import { Scissors, User, Lock, ArrowRight, ArrowLeft, Loader2, Sparkles, Globe } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslations } from '@/lib/translations';
 
@@ -194,9 +194,13 @@ export default function CustomerLoginPage() {
         </div>
 
         {/* Back Link */}
-        <div className="mt-6 text-center text-xs text-zinc-500">
-          <Link href="/" className="hover:text-zinc-300 transition">
-            {t.backToSite}
+        <div className="mt-8 text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 text-xs font-bold border border-amber-500/30 hover:border-amber-400/70 shadow-lg shadow-black/60 transition-all duration-200 group cursor-pointer"
+          >
+            <ArrowLeft className={`w-4 h-4 transition-transform group-hover:-translate-x-1 ${isArabic ? 'rotate-180 group-hover:translate-x-1' : ''}`} />
+            <span>{t.backToSite}</span>
           </Link>
         </div>
       </div>
