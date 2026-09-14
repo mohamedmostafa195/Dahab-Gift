@@ -36,8 +36,12 @@ export async function GET(req: NextRequest) {
       Math.round((customer.currentVisits / targetVisits) * 100)
     );
 
-    const activeRewards = rewards.filter((r) => r.status === 'AVAILABLE');
-    const pastRewards = rewards.filter((r) => r.status === 'REDEEMED');
+    const activeRewards = rewards.filter(
+      (r) => r.status === 'AVAILABLE' || r.status === 'PENDING_APPROVAL' || r.status === 'REJECTED'
+    );
+    const pastRewards = rewards.filter(
+      (r) => r.status === 'REDEEMED' || r.status === 'EXPIRED'
+    );
 
     return NextResponse.json({
       customer,

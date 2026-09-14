@@ -1,6 +1,6 @@
 export type UserRole = 'CUSTOMER' | 'BARBER' | 'ADMIN';
 
-export type RewardStatus = 'AVAILABLE' | 'REDEEMED' | 'EXPIRED';
+export type RewardStatus = 'AVAILABLE' | 'PENDING_APPROVAL' | 'REDEEMED' | 'REJECTED' | 'EXPIRED';
 
 export interface User {
   id: string;
@@ -54,6 +54,10 @@ export interface Reward {
   earnedAt: string;
   redeemedAt?: string;
   redeemedBy?: string;
+  selectedService?: string;
+  selectedServicePrice?: number;
+  rejectionReason?: string;
+  requestedAt?: string;
 }
 
 export interface LoyaltyRule {

@@ -156,18 +156,43 @@ export default function AdminCustomersPage() {
       const res = await fetch('/api/admin/rewards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewardIdOrCode: identifier, redeemedBy: 'Master Barber' }),
+        body: JSON.stringify({ rewardIdOrCode: identifier, redeemedBy: 'Master Barber', action: 'APPROVE' }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        alert(data.message || 'Reward redeemed successfully! New cycle started with 0 stamps.');
+        alert(data.message || 'Reward approved and redeemed successfully! New cycle started with 0 stamps.');
         fetchCustomers();
         if (selectedCustomer) {
           openCustomerDetail(data.customer || selectedCustomer);
         }
       } else {
         alert(data.error || 'Redemption failed');
+      }
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleRejectReward = async (identifier: string) => {
+    const reason = window.prompt('Please enter the reason for rejection (optional):', 'Service unavailable');
+    if (reason === null) return;
+    try {
+      const res = await fetch('/api/admin/rewards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rewardIdOrCode: identifier, action: 'REJECT', rejectionReason: reason }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('Reward selection declined.');
+        fetchCustomers();
+        if (selectedCustomer) {
+          openCustomerDetail(selectedCustomer);
+        }
+      } else {
+        alert(data.error || 'Rejection failed');
       }
     } catch (err: any) {
       alert(err.message);
@@ -579,6 +604,11 @@ export default function AdminCustomersPage() {
                         reward={r}
                         isAdmin={true}
                         onRedeemClick={() => handleRedeemReward(r.id)}
+                        onRejectClick={() => handleRejectReward(r.id)}
+                        onRewardUpdated={() => {
+                          fetchCustomers();
+                          if (selectedCustomer) openCustomerDetail(selectedCustomer);
+                        }}
                       />
                     ))}
                   </div>

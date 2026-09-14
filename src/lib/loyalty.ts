@@ -146,6 +146,61 @@ export function logCustomerVisit(params: LogVisitParams): AddVisitResult {
   };
 }
 
+export function requestCustomerRewardClaim(
+  rewardIdOrCode: string,
+  selectedService: string,
+  selectedServicePrice?: number
+) {
+  let reward = db.getRewardById(rewardIdOrCode);
+  if (!reward) {
+    reward = db.getRewardByCode(rewardIdOrCode);
+  }
+
+  if (!reward) {
+    throw new Error('Reward voucher not found.');
+  }
+
+  if (reward.status === 'REDEEMED') {
+    throw new Error('This reward has already been redeemed.');
+  }
+
+  const updatedReward = db.updateReward(reward.id, {
+    status: 'PENDING_APPROVAL',
+    selectedService: selectedService.trim(),
+    selectedServicePrice: selectedServicePrice || 0,
+    requestedAt: new Date().toISOString(),
+    rejectionReason: undefined,
+  });
+
+  return {
+    success: true,
+    reward: updatedReward,
+    message: `Your choice "${selectedService}" has been submitted for staff approval.`,
+  };
+}
+
+export function rejectCustomerRewardClaim(rewardIdOrCode: string, reason?: string) {
+  let reward = db.getRewardById(rewardIdOrCode);
+  if (!reward) {
+    reward = db.getRewardByCode(rewardIdOrCode);
+  }
+
+  if (!reward) {
+    throw new Error('Reward voucher not found.');
+  }
+
+  const updatedReward = db.updateReward(reward.id, {
+    status: 'REJECTED',
+    rejectionReason: reason || 'Selection declined by salon staff. Please choose another service.',
+  });
+
+  return {
+    success: true,
+    reward: updatedReward,
+    message: 'Reward selection rejected.',
+  };
+}
+
 export function redeemCustomerReward(rewardIdOrCode: string, redeemedBy: string = 'Admin') {
   let reward = db.getRewardById(rewardIdOrCode);
   if (!reward) {
@@ -163,9 +218,11 @@ export function redeemCustomerReward(rewardIdOrCode: string, redeemedBy: string 
       db.getCustomerByMemberCode(rewardIdOrCode);
 
     if (customer) {
-      const unredeemed = db.getRewardsByCustomerId(customer.id).filter((r) => r.status === 'AVAILABLE');
-      if (unredeemed.length > 0) {
-        reward = unredeemed[0];
+      const pendingOrAvail = db.getRewardsByCustomerId(customer.id).filter(
+        (r) => r.status === 'AVAILABLE' || r.status === 'PENDING_APPROVAL'
+      );
+      if (pendingOrAvail.length > 0) {
+        reward = pendingOrAvail[0];
       }
     }
   }
@@ -223,6 +280,24 @@ export function redeemCustomerReward(rewardIdOrCode: string, redeemedBy: string 
     currentVisits: newCurrentVisits,
     tier: calculateTier(customer.lifetimeVisits),
   });
+
+  // Optionally log the complimentary reward service in customer visits
+  const rewardServiceName = reward.selectedService
+    ? `${reward.selectedService} (Free VIP Reward)`
+    : `${reward.title} (Free VIP Reward)`;
+
+  const rewardVisit: Visit = {
+    id: `vis-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    customerId: customer.id,
+    cycleNumber: reward.cycleNumber,
+    visitIndexInCycle: target,
+    serviceName: rewardServiceName,
+    barberName: redeemedBy || 'Master Barber Tarek',
+    price: 0,
+    notes: `Complimentary reward claimed with Voucher #${reward.voucherCode}`,
+    createdAt: now,
+  };
+  db.createVisit(rewardVisit);
 
   return {
     success: true,

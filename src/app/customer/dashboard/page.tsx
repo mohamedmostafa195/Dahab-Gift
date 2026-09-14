@@ -7,7 +7,7 @@ import StampPunchCard from '@/components/customer/StampPunchCard';
 import MemberQRCodeModal from '@/components/customer/MemberQRCodeModal';
 import RewardCard from '@/components/customer/RewardCard';
 import VisitTimeline from '@/components/customer/VisitTimeline';
-import { Customer, Visit, Reward, LoyaltyRule } from '@/types';
+import { Customer, Visit, Reward, LoyaltyRule, ServiceItem } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getTranslations } from '@/lib/translations';
 import {
@@ -37,6 +37,7 @@ export default function CustomerDashboardPage() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [activeRewards, setActiveRewards] = useState<Reward[]>([]);
   const [pastRewards, setPastRewards] = useState<Reward[]>([]);
+  const [services, setServices] = useState<ServiceItem[]>([]);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'rewards' | 'history'>('rewards');
 
@@ -100,6 +101,7 @@ export default function CustomerDashboardPage() {
       setVisits(data.visits || []);
       setActiveRewards(data.activeRewards || []);
       setPastRewards(data.pastRewards || []);
+      if (data.services) setServices(data.services);
 
       if (data.customer) {
         localStorage.setItem('dahab_customer_phone', data.customer.phoneNumber);
@@ -292,7 +294,12 @@ export default function CustomerDashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeRewards.map((reward) => (
-                <RewardCard key={reward.id} reward={reward} />
+                <RewardCard
+                  key={reward.id}
+                  reward={reward}
+                  availableServices={services}
+                  onRewardUpdated={() => fetchProfile()}
+                />
               ))}
             </div>
           </div>
@@ -347,10 +354,20 @@ export default function CustomerDashboardPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeRewards.map((reward) => (
-                    <RewardCard key={reward.id} reward={reward} />
+                    <RewardCard
+                      key={reward.id}
+                      reward={reward}
+                      availableServices={services}
+                      onRewardUpdated={() => fetchProfile()}
+                    />
                   ))}
                   {pastRewards.map((reward) => (
-                    <RewardCard key={reward.id} reward={reward} />
+                    <RewardCard
+                      key={reward.id}
+                      reward={reward}
+                      availableServices={services}
+                      onRewardUpdated={() => fetchProfile()}
+                    />
                   ))}
                 </div>
               )}

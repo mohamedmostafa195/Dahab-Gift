@@ -123,6 +123,15 @@
       "role": "CUSTOMER",
       "passwordHash": "1234",
       "createdAt": "2026-09-14T07:16:18.953Z"
+    },
+    {
+      "id": "user-1789417490768-210",
+      "phoneNumber": "01128414348",
+      "fullName": "Tots",
+      "email": "",
+      "role": "CUSTOMER",
+      "passwordHash": "123456",
+      "createdAt": "2026-09-14T20:24:50.768Z"
     }
   ],
   "customers": [
@@ -133,11 +142,12 @@
       "phoneNumber": "01061716455",
       "memberCode": "DHB-6061",
       "currentCycle": 1,
-      "currentVisits": 0,
-      "lifetimeVisits": 0,
+      "currentVisits": 1,
+      "lifetimeVisits": 1,
       "tier": "BRONZE",
       "createdAt": "2026-09-13T10:10:06.069Z",
-      "updatedAt": "2026-09-13T10:11:21.670Z"
+      "updatedAt": "2026-09-14T20:18:05.092Z",
+      "lastVisitDate": "2026-09-14T20:18:05.084Z"
     },
     {
       "id": "cust-1789294445895-173",
@@ -305,10 +315,121 @@
       "tier": "BRONZE",
       "createdAt": "2026-09-14T07:16:18.953Z",
       "updatedAt": "2026-09-14T07:16:18.953Z"
+    },
+    {
+      "id": "cust-1789417490770-975",
+      "userId": "user-1789417490768-210",
+      "fullName": "Tots",
+      "phoneNumber": "01128414348",
+      "email": "",
+      "memberCode": "DHB-9011",
+      "currentCycle": 2,
+      "currentVisits": 0,
+      "lifetimeVisits": 5,
+      "tier": "SILVER",
+      "createdAt": "2026-09-14T20:24:50.768Z",
+      "updatedAt": "2026-09-14T20:26:33.796Z",
+      "lastVisitDate": "2026-09-14T20:25:35.454Z"
     }
   ],
-  "visits": [],
-  "rewards": [],
+  "visits": [
+    {
+      "id": "vis-1789417085084-280",
+      "customerId": "cust-1789294206071-606",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 1,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-14T20:18:05.084Z"
+    },
+    {
+      "id": "vis-1789417527638-298",
+      "customerId": "cust-1789417490770-975",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 1,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-14T20:25:27.638Z"
+    },
+    {
+      "id": "vis-1789417529505-537",
+      "customerId": "cust-1789417490770-975",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 2,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-14T20:25:29.505Z"
+    },
+    {
+      "id": "vis-1789417531918-908",
+      "customerId": "cust-1789417490770-975",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 3,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-14T20:25:31.917Z"
+    },
+    {
+      "id": "vis-1789417533497-48",
+      "customerId": "cust-1789417490770-975",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 4,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-14T20:25:33.497Z"
+    },
+    {
+      "id": "vis-1789417535454-447",
+      "customerId": "cust-1789417490770-975",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 5,
+      "serviceName": "Dahab Signature Haircut",
+      "barberName": "Tarek \"The Master\" El-Sayed",
+      "price": 350,
+      "notes": "",
+      "createdAt": "2026-09-14T20:25:35.454Z"
+    },
+    {
+      "id": "vis-1789417593797-298",
+      "customerId": "cust-1789417490770-975",
+      "cycleNumber": 1,
+      "visitIndexInCycle": 5,
+      "serviceName": "Royal Beard Sculpt & Hot Towel (Free VIP Reward)",
+      "barberName": "Master Barber Tarek",
+      "price": 0,
+      "notes": "Complimentary reward claimed with Voucher #DHB-RWD-5346",
+      "createdAt": "2026-09-14T20:26:33.794Z"
+    }
+  ],
+  "rewards": [
+    {
+      "id": "rwd-1789417535457-233",
+      "customerId": "cust-1789417490770-975",
+      "customerName": "Tots",
+      "customerPhone": "01128414348",
+      "voucherCode": "DHB-RWD-5346",
+      "title": "Free Signature Haircut",
+      "description": "Cycle 1 Reward: Enjoy a complimentary signature haircut with refreshing hot towel finish.",
+      "cycleNumber": 1,
+      "status": "REDEEMED",
+      "earnedAt": "2026-09-14T20:25:35.454Z",
+      "selectedService": "Royal Beard Sculpt & Hot Towel",
+      "selectedServicePrice": 250,
+      "requestedAt": "2026-09-14T20:26:12.076Z",
+      "redeemedAt": "2026-09-14T20:26:33.794Z",
+      "redeemedBy": "Master Barber Tarek"
+    }
+  ],
   "loyaltyRule": {
     "id": "rule-default-1",
     "targetVisits": 5,
