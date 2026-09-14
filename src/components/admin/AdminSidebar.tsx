@@ -167,29 +167,8 @@ export default function AdminSidebar() {
     <>
       {/* MOBILE TOP NAVBAR (Only visible on small screens < md) */}
       <header className="md:hidden sticky top-0 z-40 bg-[#0d0d11]/95 backdrop-blur-md border-b border-amber-500/20 px-4 py-3 flex items-center justify-between shadow-lg">
-        <Link href="/admin" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-zinc-950 font-bold shadow-sm shadow-amber-500/20">
-            <Scissors className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="font-serif text-base font-bold tracking-wider text-white block leading-tight">
-              DAHAB
-            </span>
-            <span className="text-[9px] uppercase tracking-widest text-amber-400 font-semibold block">
-              Admin Lounge
-            </span>
-          </div>
-        </Link>
-
+        {/* Navigation & Action Buttons (Left) */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/admin/scanner"
-            className="p-2 rounded-xl bg-zinc-900 border border-amber-500/30 text-amber-400 hover:bg-amber-400/10 transition flex items-center gap-1 text-xs font-semibold"
-            title="QR Scanner"
-          >
-            <QrCode className="w-4 h-4" />
-          </Link>
-
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-200 hover:text-amber-400 hover:border-amber-500/30 transition flex items-center justify-center"
@@ -197,7 +176,30 @@ export default function AdminSidebar() {
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+
+          <Link
+            href="/admin/scanner"
+            className="p-2 rounded-xl bg-zinc-900 border border-amber-500/30 text-amber-400 hover:bg-amber-400/10 transition flex items-center gap-1 text-xs font-semibold"
+            title="QR Scanner"
+          >
+            <QrCode className="w-4 h-4" />
+          </Link>
         </div>
+
+        {/* Brand Logo (Right) */}
+        <Link href="/admin" className="flex items-center gap-2.5">
+          <div className="text-right">
+            <span className="font-serif text-base font-bold tracking-wider text-white block leading-tight">
+              DAHAB
+            </span>
+            <span className="text-[9px] uppercase tracking-widest text-amber-400 font-semibold block">
+              Admin Lounge
+            </span>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-zinc-950 font-bold shadow-sm shadow-amber-500/20">
+            <Scissors className="w-4 h-4" />
+          </div>
+        </Link>
       </header>
 
       {/* MOBILE SLIDE-OVER DRAWER & BACKDROP */}
