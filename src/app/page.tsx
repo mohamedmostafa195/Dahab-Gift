@@ -737,14 +737,16 @@ export default function LandingPage() {
                   key={barber.id}
                   className="rounded-2xl bg-zinc-900/60 border border-zinc-800 overflow-hidden hover:border-amber-500/40 transition group"
                 >
-                  <div className="aspect-[4/3] relative overflow-hidden bg-zinc-800">
-                    <img
-                      src={barber.avatar}
-                      alt={name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <div className="aspect-[4/3] relative overflow-hidden bg-gradient-to-b from-zinc-800/30 via-zinc-900 to-zinc-950 border-b border-zinc-800/80">
+                    {Boolean(barber.avatar && barber.avatar.trim() !== '') && (
+                      <img
+                        src={barber.avatar}
+                        alt={name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
                       <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-zinc-900/90 text-amber-300 border border-amber-400/30 flex items-center gap-1">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         {barber.rating} / 5.0
