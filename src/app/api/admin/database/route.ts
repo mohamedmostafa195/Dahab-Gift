@@ -42,3 +42,26 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function PUT() {
+  try {
+    const success = await db.syncToCloud();
+    const current = db.getDatabase();
+    return NextResponse.json({
+      success,
+      message: success
+        ? 'All records pushed and synchronized with Cloud / Supabase successfully!'
+        : 'Cloud sync not configured or failed.',
+      stats: {
+        customers: current.customers.length,
+        visits: current.visits.length,
+        rewards: current.rewards.length,
+      },
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to sync with cloud' },
+      { status: 500 }
+    );
+  }
+}

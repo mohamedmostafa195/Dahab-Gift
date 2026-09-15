@@ -83,6 +83,7 @@ export default function AdminSettingsPage() {
   } | null>(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -98,6 +99,22 @@ export default function AdminSettingsPage() {
       }
     } catch (e) {
       console.error('Error fetching cloud status:', e);
+    }
+  };
+
+  const handleSyncCloud = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/admin/database', { method: 'PUT' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Sync failed');
+      setSuccessMsg(data.message || 'Synchronized with cloud database!');
+      fetchCloudStatus();
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      alert('Sync Error: ' + err.message);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -196,17 +213,28 @@ export default function AdminSettingsPage() {
                   ) : (
                     <span className="text-[10px] uppercase font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                      Local Storage Mode (Setup Upstash on Vercel for 100% cloud sync)
+                      Local Storage Mode (Connect Supabase or KV for 100% Cloud Persistence)
                     </span>
                   )}
                 </h3>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Ensures all customer accounts and stamp cards persist across Vercel serverless deployments.
+                  {cloudInfo?.configured
+                    ? `Connected to ${cloudInfo.provider} (${cloudInfo.urlPrefix}) - all customers, visits and stamps persist globally.`
+                    : 'Currently running on local storage. Add your Supabase credentials in .env.local to persist all data globally in PostgreSQL.'}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleSyncCloud}
+                disabled={syncing}
+                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 transition"
+              >
+                {syncing ? 'Syncing...' : '⚡ Push All Data to Cloud'}
+              </button>
+
               <button
                 type="button"
                 onClick={handleExportBackup}
@@ -216,7 +244,7 @@ export default function AdminSettingsPage() {
                 {exporting ? 'Exporting...' : 'Export Backup JSON'}
               </button>
 
-              <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+              <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 hover:border-amber-400 text-xs font-semibold flex items-center gap-1.5 transition">
                 {importing ? 'Importing...' : 'Restore / Import JSON'}
                 <input
                   type="file"
@@ -230,15 +258,15 @@ export default function AdminSettingsPage() {
           </div>
 
           {!cloudInfo?.configured && (
-            <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2 text-xs text-amber-200/90">
-              <p className="font-bold text-amber-300">
-                💡 How to enable permanent cloud database on Vercel (1-Click Free):
+            <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-3 text-xs text-amber-200/90">
+              <p className="font-bold text-amber-300 flex items-center gap-2">
+                <span>⚡</span> الخطوات السريعة لربط Supabase:
               </p>
-              <ol className="list-decimal list-inside space-y-1 text-zinc-300 pl-1 text-[11px] leading-relaxed">
-                <li>Go to your project on <strong>Vercel Dashboard</strong> &rarr; Click <strong>Storage</strong> tab.</li>
-                <li>Click <strong>Create Database</strong> &rarr; Select <strong>KV (Upstash Redis)</strong> &rarr; Click <strong>Continue</strong>.</li>
-                <li>Connect it to your project. Vercel will automatically inject <code className="text-amber-300">KV_REST_API_URL</code> and <code className="text-amber-300">KV_REST_API_TOKEN</code>.</li>
-                <li>Redeploy or promote production build. Done! All customer accounts & stamps will sync globally in real-time.</li>
+              <ol className="list-decimal list-inside space-y-1.5 text-zinc-300 pl-1 text-[11px] leading-relaxed">
+                <li>أنشئ مشروعاً جديداً مجانياً على <strong className="text-white">Supabase.com</strong>.</li>
+                <li>من لوحة التحكم ادخل على <strong className="text-amber-300">SQL Editor</strong> وانسخ محتويات ملف <code className="text-amber-300">supabase_schema.sql</code> واضغط <strong className="text-white">RUN</strong>.</li>
+                <li>انسخ مفاتيح الـ API من <strong className="text-white">Project Settings &rarr; API</strong> وضعها داخل ملف <code className="text-amber-300">.env.local</code>.</li>
+                <li>أعد تشغيل المشروع أو اضغط على زر <strong className="text-amber-300">⚡ Push All Data to Cloud</strong> لنقل البيانات تلقائياً!</li>
               </ol>
             </div>
           )}

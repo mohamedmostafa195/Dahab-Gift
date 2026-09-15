@@ -20,8 +20,9 @@ import {
   INITIAL_BARBERS,
   INITIAL_SERVICES,
 } from './seed-data';
+import { getSupabaseAdmin, isSupabaseConfigured } from './supabase';
 
-interface DatabaseSchema {
+export interface DatabaseSchema {
   users: User[];
   customers: Customer[];
   visits: Visit[];
@@ -57,7 +58,7 @@ function getKvToken(): string | undefined {
 
 const STORAGE_KEY = 'dahab_barbershop_db_v1';
 
-function mergeDatabases(cloud: DatabaseSchema, local: DatabaseSchema): DatabaseSchema {
+function mergeDatabases(cloud: Partial<DatabaseSchema>, local: DatabaseSchema): DatabaseSchema {
   const merged: DatabaseSchema = {
     users: [...(cloud.users || [])],
     customers: [...(cloud.customers || [])],
@@ -104,14 +105,12 @@ function mergeDatabases(cloud: DatabaseSchema, local: DatabaseSchema): DatabaseS
   });
   merged.visits = Array.from(visitMap.values());
 
-  // Merge rewards (dedupe by ID & voucherCode)
+  // Merge rewards (dedupe by ID & code)
   const rewardMap = new Map<string, Reward>();
   merged.rewards.forEach((r) => rewardMap.set(r.id, r));
   (local.rewards || []).forEach((r) => {
     if (!rewardMap.has(r.id)) {
-      const existing = Array.from(rewardMap.values()).find(
-        (x) => x.voucherCode && r.voucherCode && x.voucherCode.toUpperCase() === r.voucherCode.toUpperCase()
-      );
+      const existing = Array.from(rewardMap.values()).find((x) => x.voucherCode === r.voucherCode);
       if (!existing) rewardMap.set(r.id, r);
     }
   });
@@ -120,32 +119,279 @@ function mergeDatabases(cloud: DatabaseSchema, local: DatabaseSchema): DatabaseS
   return merged;
 }
 
-async function syncToCloud(data: DatabaseSchema): Promise<boolean> {
+// ==============================================================================
+// SUPABASE SYNC HELPERS
+// ==============================================================================
+async function syncFromSupabase(): Promise<DatabaseSchema | null> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return null;
+
+  try {
+    const [
+      { data: users },
+      { data: customers },
+      { data: visits },
+      { data: rewards },
+      { data: loyaltyRules },
+      { data: barbers },
+      { data: services },
+    ] = await Promise.all([
+      sb.from('users').select('*'),
+      sb.from('customers').select('*'),
+      sb.from('visits').select('*'),
+      sb.from('rewards').select('*'),
+      sb.from('loyalty_rules').select('*').limit(1),
+      sb.from('barbers').select('*'),
+      sb.from('services').select('*'),
+    ]);
+
+    const mappedUsers: User[] = (users || []).map((u: any) => ({
+      id: u.id,
+      phoneNumber: u.phone_number,
+      fullName: u.full_name,
+      email: u.email || undefined,
+      role: u.role,
+      passwordHash: u.password_hash || undefined,
+      createdAt: u.created_at,
+    }));
+
+    const mappedCustomers: Customer[] = (customers || []).map((c: any) => ({
+      id: c.id,
+      userId: c.user_id || c.id,
+      fullName: c.full_name,
+      phoneNumber: c.phone_number,
+      email: c.email || undefined,
+      memberCode: c.member_code,
+      currentCycle: Number(c.current_cycle || 1),
+      currentVisits: Number(c.current_visits || 0),
+      lifetimeVisits: Number(c.lifetime_visits || 0),
+      tier: c.tier || 'BRONZE',
+      notes: c.notes || undefined,
+      lastVisitDate: c.last_visit_date || undefined,
+      createdAt: c.created_at,
+      updatedAt: c.updated_at || c.created_at,
+    }));
+
+    const mappedVisits: Visit[] = (visits || []).map((v: any) => ({
+      id: v.id,
+      customerId: v.customer_id,
+      cycleNumber: Number(v.cycle_number || 1),
+      visitIndexInCycle: Number(v.visit_index_in_cycle || 1),
+      serviceName: v.service_name,
+      barberName: v.barber_name || undefined,
+      price: v.price !== null ? Number(v.price) : undefined,
+      notes: v.notes || undefined,
+      createdAt: v.created_at,
+    }));
+
+    const mappedRewards: Reward[] = (rewards || []).map((r: any) => ({
+      id: r.id,
+      customerId: r.customer_id,
+      customerName: r.customer_name || undefined,
+      customerPhone: r.customer_phone || undefined,
+      voucherCode: r.voucher_code,
+      title: r.title,
+      description: r.description,
+      cycleNumber: Number(r.cycle_number || 1),
+      status: r.status,
+      earnedAt: r.earned_at,
+      redeemedAt: r.redeemed_at || undefined,
+      redeemedBy: r.redeemed_by || undefined,
+      selectedService: r.selected_service || undefined,
+      selectedServicePrice: r.selected_service_price !== null ? Number(r.selected_service_price) : undefined,
+      rejectionReason: r.rejection_reason || undefined,
+      requestedAt: r.requested_at || undefined,
+    }));
+
+    let mappedLoyaltyRule: LoyaltyRule = INITIAL_LOYALTY_RULE;
+    if (loyaltyRules && loyaltyRules.length > 0) {
+      const lr = loyaltyRules[0];
+      mappedLoyaltyRule = {
+        id: lr.id,
+        targetVisits: Number(lr.target_visits || 5),
+        rewardTitle: lr.reward_title,
+        rewardDesc: lr.reward_desc,
+        shopName: lr.shop_name,
+        phonePrefix: lr.phone_prefix || '+20',
+        isActive: Boolean(lr.is_active),
+        updatedAt: lr.updated_at,
+      };
+    }
+
+    const mappedBarbers: Barber[] = (barbers || []).map((b: any) => ({
+      id: b.id,
+      name: b.name,
+      role: b.role,
+      avatar: b.avatar || '',
+      specialty: b.specialty,
+      rating: Number(b.rating || 5.0),
+    }));
+
+    const mappedServices: ServiceItem[] = (services || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      category: s.category,
+      duration: s.duration,
+      price: Number(s.price),
+      description: s.description,
+      icon: s.icon || undefined,
+      popular: Boolean(s.popular),
+    }));
+
+    return {
+      users: mappedUsers,
+      customers: mappedCustomers,
+      visits: mappedVisits,
+      rewards: mappedRewards,
+      loyaltyRule: mappedLoyaltyRule,
+      barbers: mappedBarbers.length ? mappedBarbers : INITIAL_BARBERS,
+      services: mappedServices.length ? mappedServices : INITIAL_SERVICES,
+    };
+  } catch (err) {
+    console.error('Error fetching data from Supabase:', err);
+    return null;
+  }
+}
+
+async function syncToSupabase(data: DatabaseSchema): Promise<boolean> {
+  const sb = getSupabaseAdmin();
+  if (!sb) return false;
+
+  try {
+    // 1. Users
+    if (data.users?.length) {
+      const usersPayload = data.users.map((u) => ({
+        id: u.id,
+        phone_number: u.phoneNumber,
+        full_name: u.fullName,
+        email: u.email || null,
+        role: u.role,
+        password_hash: u.passwordHash || null,
+        created_at: u.createdAt,
+      }));
+      await sb.from('users').upsert(usersPayload, { onConflict: 'id' });
+    }
+
+    // 2. Customers
+    if (data.customers?.length) {
+      const customersPayload = data.customers.map((c) => ({
+        id: c.id,
+        user_id: c.userId || c.id,
+        full_name: c.fullName,
+        phone_number: c.phoneNumber,
+        email: c.email || null,
+        member_code: c.memberCode,
+        current_cycle: c.currentCycle,
+        current_visits: c.currentVisits,
+        lifetime_visits: c.lifetimeVisits,
+        tier: c.tier,
+        notes: c.notes || null,
+        last_visit_date: c.lastVisitDate || null,
+        created_at: c.createdAt,
+        updated_at: c.updatedAt || c.createdAt,
+      }));
+      await sb.from('customers').upsert(customersPayload, { onConflict: 'id' });
+    }
+
+    // 3. Visits
+    if (data.visits?.length) {
+      const visitsPayload = data.visits.map((v) => ({
+        id: v.id,
+        customer_id: v.customerId,
+        cycle_number: v.cycleNumber,
+        visit_index_in_cycle: v.visitIndexInCycle,
+        service_name: v.serviceName,
+        barber_name: v.barberName || null,
+        price: v.price !== undefined ? v.price : null,
+        notes: v.notes || null,
+        created_at: v.createdAt,
+      }));
+      await sb.from('visits').upsert(visitsPayload, { onConflict: 'id' });
+    }
+
+    // 4. Rewards
+    if (data.rewards?.length) {
+      const rewardsPayload = data.rewards.map((r) => ({
+        id: r.id,
+        customer_id: r.customerId,
+        customer_name: r.customerName || null,
+        customer_phone: r.customerPhone || null,
+        voucher_code: r.voucherCode,
+        title: r.title,
+        description: r.description,
+        cycle_number: r.cycleNumber,
+        status: r.status,
+        earned_at: r.earnedAt,
+        redeemed_at: r.redeemedAt || null,
+        redeemed_by: r.redeemedBy || null,
+        selected_service: r.selectedService || null,
+        selected_service_price: r.selectedServicePrice !== undefined ? r.selectedServicePrice : null,
+        rejection_reason: r.rejectionReason || null,
+        requested_at: r.requestedAt || null,
+      }));
+      await sb.from('rewards').upsert(rewardsPayload, { onConflict: 'id' });
+    }
+
+    // 5. Loyalty Rule
+    if (data.loyaltyRule) {
+      const lr = data.loyaltyRule;
+      await sb.from('loyalty_rules').upsert({
+        id: lr.id,
+        target_visits: lr.targetVisits,
+        reward_title: lr.rewardTitle,
+        reward_desc: lr.rewardDesc,
+        shop_name: lr.shopName,
+        phone_prefix: lr.phonePrefix,
+        is_active: lr.isActive,
+        updated_at: lr.updatedAt,
+      }, { onConflict: 'id' });
+    }
+
+    // 6. Barbers
+    if (data.barbers?.length) {
+      const barbersPayload = data.barbers.map((b) => ({
+        id: b.id,
+        name: b.name,
+        role: b.role,
+        avatar: b.avatar || '',
+        specialty: b.specialty,
+        rating: b.rating,
+      }));
+      await sb.from('barbers').upsert(barbersPayload, { onConflict: 'id' });
+    }
+
+    // 7. Services
+    if (data.services?.length) {
+      const servicesPayload = data.services.map((s) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category,
+        duration: s.duration,
+        price: s.price,
+        description: s.description,
+        icon: s.icon || null,
+        popular: s.popular,
+      }));
+      await sb.from('services').upsert(servicesPayload, { onConflict: 'id' });
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Failed to sync data to Supabase:', err);
+    return false;
+  }
+}
+
+// Sync to Cloud KV (Upstash / Vercel KV)
+async function syncToKv(data: DatabaseSchema): Promise<boolean> {
   const url = getKvUrl();
   const token = getKvToken();
   if (!url || !token) return false;
 
   try {
     const cleanUrl = url.replace(/\/+$/, '');
-    const payload = JSON.stringify(data);
-
-    // 1. Try standard Upstash REST command payload: ["SET", key, payload]
-    const cmdRes = await fetch(cleanUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(['SET', STORAGE_KEY, payload]),
-      cache: 'no-store',
-    });
-
-    if (cmdRes.ok) {
-      return true;
-    }
-
-    // 2. Fallback to /set/key endpoint
-    const postRes = await fetch(`${cleanUrl}/set/${encodeURIComponent(STORAGE_KEY)}`, {
+    const payload = ['SET', STORAGE_KEY, JSON.stringify(data)];
+    const postRes = await fetch(cleanUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -154,7 +400,6 @@ async function syncToCloud(data: DatabaseSchema): Promise<boolean> {
       body: JSON.stringify(payload),
       cache: 'no-store',
     });
-
     return postRes.ok;
   } catch (err) {
     console.error('Failed to sync DB to Cloud KV:', err);
@@ -162,18 +407,14 @@ async function syncToCloud(data: DatabaseSchema): Promise<boolean> {
   }
 }
 
-async function syncFromCloud(): Promise<DatabaseSchema> {
-  const local = ensureDbFile();
+// Read from Cloud KV
+async function syncFromKv(): Promise<DatabaseSchema | null> {
   const url = getKvUrl();
   const token = getKvToken();
-  if (!url || !token) {
-    return local;
-  }
+  if (!url || !token) return null;
 
   try {
     const cleanUrl = url.replace(/\/+$/, '');
-
-    // 1. Try standard Upstash command: ["GET", key]
     let res = await fetch(cleanUrl, {
       method: 'POST',
       headers: {
@@ -185,12 +426,9 @@ async function syncFromCloud(): Promise<DatabaseSchema> {
     });
 
     if (!res.ok) {
-      // 2. Fallback to /get/key
       res = await fetch(`${cleanUrl}/get/${encodeURIComponent(STORAGE_KEY)}`, {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
     }
@@ -203,28 +441,17 @@ async function syncFromCloud(): Promise<DatabaseSchema> {
           result = JSON.parse(result);
         } catch (e) {}
       }
-
       if (result && typeof result === 'object' && Array.isArray(result.customers)) {
-        const merged = mergeDatabases(result as DatabaseSchema, local);
-        memoryDb = merged;
-        try {
-          if (!fs.existsSync(DB_DIR)) {
-            fs.mkdirSync(DB_DIR, { recursive: true });
-          }
-          fs.writeFileSync(DB_FILE, JSON.stringify(merged, null, 2), 'utf-8');
-        } catch (e) {}
-        return merged;
+        return result as DatabaseSchema;
       }
     }
   } catch (err) {
     console.error('Error reading from Cloud KV:', err);
   }
-
-  return local;
+  return null;
 }
 
 // In serverless environments (like Vercel), the root project filesystem is read-only.
-// We use os.tmpdir() so that file caching works if possible, combined with in-memory caching.
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production');
 const DB_DIR = isServerless ? os.tmpdir() : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'barbershop-db.json');
@@ -250,23 +477,27 @@ function ensureDbFile(): DatabaseSchema {
     console.error('Error reading DB file:', err);
   }
 
-  if (memoryDb) {
-    return memoryDb;
-  }
+  // If memory DB exists, return it
+  if (memoryDb) return memoryDb;
 
-  // Initialize with seed data
-  const initialData: DatabaseSchema = {
-    users: JSON.parse(JSON.stringify(INITIAL_USERS)),
-    customers: JSON.parse(JSON.stringify(INITIAL_CUSTOMERS)),
-    visits: JSON.parse(JSON.stringify(INITIAL_VISITS)),
-    rewards: JSON.parse(JSON.stringify(INITIAL_REWARDS)),
-    loyaltyRule: JSON.parse(JSON.stringify(INITIAL_LOYALTY_RULE)),
-    barbers: JSON.parse(JSON.stringify(INITIAL_BARBERS)),
-    services: JSON.parse(JSON.stringify(INITIAL_SERVICES)),
+  // Initialize fresh defaults
+  const initialDb: DatabaseSchema = {
+    users: INITIAL_USERS,
+    customers: INITIAL_CUSTOMERS,
+    visits: INITIAL_VISITS,
+    rewards: INITIAL_REWARDS,
+    loyaltyRule: INITIAL_LOYALTY_RULE,
+    barbers: INITIAL_BARBERS,
+    services: INITIAL_SERVICES,
   };
 
-  saveDb(initialData);
-  memoryDb = initialData;
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error writing initial DB file:', err);
+  }
+
+  memoryDb = initialDb;
   return memoryDb;
 }
 
@@ -281,20 +512,37 @@ function saveDb(data: DatabaseSchema): void {
     console.error('Error saving DB file:', err);
   }
 
-  // Fire-and-forget sync to Cloud KV if available
-  const kvUrl = getKvUrl();
-  const kvToken = getKvToken();
-  if (kvUrl && kvToken) {
-    syncToCloud(data).catch((err) => console.error('Background cloud sync error:', err));
+  // Cloud Persistence Sync
+  if (isSupabaseConfigured()) {
+    syncToSupabase(data).catch((err) => console.error('Background Supabase sync error:', err));
+  } else if (getKvUrl() && getKvToken()) {
+    syncToKv(data).catch((err) => console.error('Background KV sync error:', err));
   }
 }
 
 export const db = {
   // CLOUD STATUS & SYNC
   isCloudConfigured(): boolean {
-    return Boolean(getKvUrl() && getKvToken());
+    return isSupabaseConfigured() || Boolean(getKvUrl() && getKvToken());
   },
+
   getCloudStatus(): { configured: boolean; provider: string; urlPrefix: string } {
+    if (isSupabaseConfigured()) {
+      const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+      let urlPrefix = 'Supabase Connected';
+      try {
+        const u = new URL(sbUrl);
+        urlPrefix = `${u.protocol}//${u.hostname}`;
+      } catch (e) {
+        urlPrefix = sbUrl.slice(0, 25) + '...';
+      }
+      return {
+        configured: true,
+        provider: 'Supabase (PostgreSQL)',
+        urlPrefix,
+      };
+    }
+
     const url = getKvUrl();
     const token = getKvToken();
     const configured = Boolean(url && token);
@@ -313,23 +561,61 @@ export const db = {
     }
     return { configured, provider, urlPrefix };
   },
+
   async syncFromCloud(): Promise<DatabaseSchema> {
-    return syncFromCloud();
+    const local = ensureDbFile();
+
+    // 1. Try Supabase first
+    if (isSupabaseConfigured()) {
+      const supabaseData = await syncFromSupabase();
+      if (supabaseData) {
+        const merged = mergeDatabases(supabaseData, local);
+        memoryDb = merged;
+        try {
+          if (!fs.existsSync(DB_DIR)) {
+            fs.mkdirSync(DB_DIR, { recursive: true });
+          }
+          fs.writeFileSync(DB_FILE, JSON.stringify(merged, null, 2), 'utf-8');
+        } catch (e) {}
+        return merged;
+      }
+    }
+
+    // 2. Fallback to Cloud KV (Upstash/Redis)
+    const kvData = await syncFromKv();
+    if (kvData) {
+      const merged = mergeDatabases(kvData, local);
+      memoryDb = merged;
+      try {
+        if (!fs.existsSync(DB_DIR)) {
+          fs.mkdirSync(DB_DIR, { recursive: true });
+        }
+        fs.writeFileSync(DB_FILE, JSON.stringify(merged, null, 2), 'utf-8');
+      } catch (e) {}
+      return merged;
+    }
+
+    return local;
   },
+
   async syncToCloud(data?: DatabaseSchema): Promise<boolean> {
     const d = data || ensureDbFile();
-    return syncToCloud(d);
+    if (isSupabaseConfigured()) {
+      return syncToSupabase(d);
+    }
+    return syncToKv(d);
   },
 
   // DATABASE IMPORT / EXPORT
   getDatabase(): DatabaseSchema {
     return ensureDbFile();
   },
+
   async importDatabase(incoming: Partial<DatabaseSchema>): Promise<DatabaseSchema> {
     const current = ensureDbFile();
     const merged = mergeDatabases(incoming as DatabaseSchema, current);
     saveDb(merged);
-    await syncToCloud(merged);
+    await this.syncToCloud(merged);
     return merged;
   },
 
@@ -665,7 +951,6 @@ export const db = {
     // Monthly trends (last 6 months)
     const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
     const monthlyVisits = months.map((m, idx) => {
-      // realistic distributed visits
       const multiplier = idx + 1;
       return {
         month: m,
